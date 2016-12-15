@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <Button
+        android:text="入力"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="41dp"
+        android:id="@+id/InputMode_button"
+        android:textSize="18sp"
+        android:layout_below="@+id/notice_button"
+        android:layout_alignEnd="@+id/notice_button"
+        android:layout_alignStart="@+id/notice_button"/>
+
+    <TextView
+        android:text="@string/setting_InputMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/notice_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="12dp"
+        android:id="@+id/InputMode_text"
+        android:textSize="18sp"/>
+
+    <Button
+        android:text="通知"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:id="@+id/notice_button"
+        android:textSize="18sp"
+        android:layout_below="@+id/notice_text"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:text="名前"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="52dp"
+        android:id="@+id/name_button"
+        android:textSize="18sp"
+        android:layout_below="@+id/root_button"
+        android:layout_alignStart="@+id/root_button"
+        android:layout_alignEnd="@+id/root_button"/>
+
+    <Button
+        android:text="ルート"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/root_button"
+        android:layout_marginTop="18dp"
+        android:textSize="18sp"
+        android:layout_below="@+id/root_text"
+        android:layout_alignStart="@+id/InputMode_button"
+        android:layout_alignEnd="@+id/InputMode_button"/>
+
+    <TextView
+        android:text="@string/setting_notice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="23dp"
+        android:id="@+id/notice_text"
+        android:textSize="18sp"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/InputMode_text"/>
+
+    <TextView
+        android:text="@string/setting_root"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/root_text"
+        android:textSize="18sp"
+        android:layout_below="@+id/InputMode_button"
+        android:layout_alignStart="@+id/InputMode_text"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:text="@string/setting_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:id="@+id/name_text"
+        android:textSize="18sp"
+        android:layout_below="@+id/root_button"
+        android:layout_alignStart="@+id/root_text"/>
+</RelativeLayout>

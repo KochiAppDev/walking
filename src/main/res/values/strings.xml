@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Walking</string>
+    <string name="title_activity_map">Map</string>
+    <string name="title_activity_notice">NoticeActivity</string>
+
+    <string name="type_text">あなたは見守る側の人ですか？\n\nそれとも見守られる側の人ですか？\n\n選択してください。</string>
+    <string name="explanation">このアプリは家族での\n\nコミュニケーションを深めるための\n\nツールとしてご利用ください。</string>
+    <string name="aicon_set">あなたのアイコンを一つ選んでください。</string>
+    <string name="distance">ルートから離れると通知が来ます。\n\n速度でも同じように設定できます。\n\nどのくらいにしますか？</string>
+    <string-array name="distance_list">
+        <item>1km</item>
+        <item>2km</item>
+    </string-array>
+    <string-array name="speed_list">
+        <item>40km/h</item>
+        <item>50km/h</item>
+    </string-array>
+    <string name="setting_notice">通知の設定が変更できます。</string>
+    <string name="setting_InputMode">メッセージの入力方式を変更できます。</string>
+    <string name="setting_root">ルートの設定ができます。</string>
+    <string name="setting_name">名前の変更ができます。</string>
+</resources>
