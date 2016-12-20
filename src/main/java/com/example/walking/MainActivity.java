@@ -29,16 +29,16 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback{
 
 	private boolean state;
 	public static Notice notice;
-	private GoogleMap mMap;
+	public GoogleMap mMap;
 	private Setting setting;
 	public static NameSet nameSet;
 	private ArrayList<Account> date = new ArrayList<>();
 	private MapFragment mapFragment;
-	private LocationManager locationManager;
+	private MyGPS myGPS;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		notice = new Notice(this);
 		Explanation explanation = new Explanation(this);
 		nameSet = new NameSet(this);
+		myGPS = new MyGPS(this);
 		if (state) {
 			explanation.MysetContentView();
 		}
@@ -63,13 +64,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 			mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
 			mapFragment.getMapAsync(this);
-
-			// ロケーションマネージャーのインスタンスを取得
-			locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			Criteria criteria = new Criteria();
-			locationManager.getBestProvider(criteria,true);
-			String provider  = LocationManager.NETWORK_PROVIDER;
-			startGPS(provider);
 
 			ArrayList<Bitmap> listBitmap = new ArrayList<>();
 			Resources r = getResources();
@@ -96,51 +90,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	@Override
 	protected void onPause() {
 		super.onPause();
-		stopGPS();
+		myGPS.stopGPS();
 		getFragmentManager().beginTransaction().remove(mapFragment).commit();
 	}
 
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
 		mMap = googleMap;
-	}
-
-	@Override
-	public void onLocationChanged(Location location) {
-		LatLng sydney = new LatLng(location.getLatitude(), location.getLatitude());
-		mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-		mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-	}
-	@Override
-	public void onProviderDisabled(String provider) {
-		if (provider == LocationManager.GPS_PROVIDER) {
-			stopGPS();
-			startGPS(provider);
-		}
-	}
-
-	@Override
-	public void onProviderEnabled(String provider) {
-
-	}
-
-	@Override
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-		if (status == LocationProvider.AVAILABLE && provider == LocationManager.GPS_PROVIDER) {
-			stopGPS();
-			startGPS(provider);
-		}
-	}
-
-	private void startGPS(String provider){
-		if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-			locationManager.requestLocationUpdates(provider, 10000, 0, this);
-		}
-	}
-
-	private void stopGPS(){
-		if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-			locationManager.removeUpdates(this);
-		}
 	}
 }
