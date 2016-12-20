@@ -18,13 +18,13 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MyGPS implements LocationListener {
+class MyGPS implements LocationListener {
 	private LocationManager locationManager;
 	private MainActivity mainActivity;
 	private double latitude = 0;
 	private double longitude = 0;
 
-	public MyGPS(MainActivity context) {
+	MyGPS(MainActivity context) {
 		mainActivity = context;
 		String provider = null;
 		// ロケーションマネージャーのインスタンスを取得
@@ -54,7 +54,7 @@ public class MyGPS implements LocationListener {
 		return longitude;
 	}
 
-	public void startGPS(String provider) {
+	private void startGPS(String provider) {
 		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			// TODO: Consider calling
 			//    ActivityCompat#requestPermissions
@@ -68,7 +68,7 @@ public class MyGPS implements LocationListener {
 		locationManager.requestLocationUpdates(provider, 0, 0, this);
 	}
 
-	public void stopGPS(){
+	void stopGPS(){
 		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			// TODO: Consider calling
 			//    ActivityCompat#requestPermissions
