@@ -20,9 +20,6 @@ class Notice implements View.OnClickListener,CompoundButton.OnCheckedChangeListe
 		this.context = context;
 	}
 
-	public void MysetContentView(){
-		set();
-	}
 	public void MysetContentView(Account account){
 		set();
 		this.account = account;

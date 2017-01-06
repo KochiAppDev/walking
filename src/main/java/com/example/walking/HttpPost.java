@@ -16,7 +16,7 @@ import java.net.URL;
 
 
 public class HttpPost {
-	private JSONObject exec_post(String urlSt, JSONObject jsonObject) {
+	public static JSONObject exec_post(String urlSt, String str) {
 		HttpURLConnection con = null;
 		URL url = null;
 
@@ -39,7 +39,7 @@ public class HttpPost {
 			// データを送信
 			OutputStream out = con.getOutputStream();
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
-			writer.write(String.valueOf(jsonObject));
+			writer.write(str);
 			writer.flush();
 			writer.close();
 			out.close();

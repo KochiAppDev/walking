@@ -2,31 +2,58 @@ package com.example.walking;
 
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.widget.Toast;
 
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 class MyGPS implements LocationListener {
-	private LocationManager locationManager;
+	LocationManager locationManager;
 	private MainActivity mainActivity;
+	Marker marker;
+	String provider = null;
 	private double latitude = 0;
 	private double longitude = 0;
 
 	MyGPS(MainActivity context) {
 		mainActivity = context;
-		String provider = null;
+	}
+
+	public double getLatitude() {
+		return latitude;
+	}
+
+	public double getLongitude() {
+		return longitude;
+	}
+
+	void setting(){
+		if(Build.VERSION.SDK_INT >= 23){
+			// 拒否していた場合
+			if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+				int REQUEST_PERMISSION = 1000;
+				if (ActivityCompat.shouldShowRequestPermissionRationale(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION)){
+					ActivityCompat.requestPermissions(mainActivity,new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION);
+				} else {
+					Toast toast = Toast.makeText(mainActivity, "許可されないとアプリが実行できません", Toast.LENGTH_SHORT);
+					toast.show();
+					ActivityCompat.requestPermissions(mainActivity, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION,}, REQUEST_PERMISSION);
+				}
+			}
+		}
+	}
+
+	void startGPS() {
 		// ロケーションマネージャーのインスタンスを取得
 		locationManager = (LocationManager) mainActivity.getSystemService(Context.LOCATION_SERVICE);
 		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
@@ -43,29 +70,7 @@ class MyGPS implements LocationListener {
 		}else{
 			return;
 		}
-		startGPS(provider);
-	}
-
-	public double getLatitude() {
-		return latitude;
-	}
-
-	public double getLongitude() {
-		return longitude;
-	}
-
-	private void startGPS(String provider) {
-		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-			// TODO: Consider calling
-			//    ActivityCompat#requestPermissions
-			// here to request the missing permissions, and then overriding
-			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-			//                                          int[] grantResults)
-			// to handle the case where the user grants the permission. See the documentation
-			// for ActivityCompat#requestPermissions for more details.
-			return;
-		}
-		locationManager.requestLocationUpdates(provider, 0, 0, this);
+		locationManager.requestLocationUpdates(provider, 0, 10, this);
 	}
 
 	void stopGPS(){
@@ -82,19 +87,32 @@ class MyGPS implements LocationListener {
 		locationManager.removeUpdates(this);
 	}
 
-	@Override
-	public void onLocationChanged(Location location) {
+	void setMarker(Location location, String title){
+		if(location != null){
+			LatLng sydney = new LatLng(location.getLatitude(), location.getLongitude());
+			marker = mainActivity.mMap.addMarker(new MarkerOptions().position(sydney).title(title));
+			mainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+		}
+	}
+
+	private void setMP(Location location){
 		latitude = location.getLatitude();
 		longitude = location.getLongitude();
 		LatLng sydney = new LatLng(latitude, longitude);
-		mainActivity.mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+		marker.setPosition(sydney);
 		mainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		setMP(location);
+	}
+
 	@Override
 	public void onProviderDisabled(String provider) {
 		if (provider == LocationManager.GPS_PROVIDER) {
 			stopGPS();
-			startGPS(provider);
+			startGPS();
 		}
 	}
 
@@ -107,7 +125,7 @@ class MyGPS implements LocationListener {
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		if (status == LocationProvider.AVAILABLE && provider == LocationManager.GPS_PROVIDER) {
 			stopGPS();
-			startGPS(provider);
+			startGPS();
 		}
 	}
 }

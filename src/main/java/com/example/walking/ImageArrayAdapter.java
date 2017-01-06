@@ -11,12 +11,12 @@ import android.widget.ImageView;
 
 import java.util.ArrayList;
 
-public class ImageArrayAdapter extends ArrayAdapter<Bitmap>{
+public class ImageArrayAdapter extends ArrayAdapter<Integer>{
 	private int resourceId;
-	private ArrayList<Bitmap> items;
+	private ArrayList<Integer> items;
 	private LayoutInflater inflater;
 
-	public ImageArrayAdapter(Context context, int resourceId, ArrayList<Bitmap> items) {
+	public ImageArrayAdapter(Context context, int resourceId, ArrayList<Integer> items) {
 		super(context, resourceId, items);
 
 		this.resourceId = resourceId;
@@ -26,19 +26,17 @@ public class ImageArrayAdapter extends ArrayAdapter<Bitmap>{
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		View view;
+		ImageView imageView;
 		if (convertView != null) {
-			view = convertView;
+			imageView = (ImageView)convertView;
 		} else {
-			view = this.inflater.inflate(this.resourceId, null);
+			imageView = (ImageView)this.inflater.inflate(this.resourceId, null);
 		}
 
-		Bitmap item = this.items.get(position);
+		Bitmap item = MainActivity.color[items.get(position)];
 
 		// アイコンをセット
-		ImageView appInfoImage = (ImageView)view.findViewById(R.id.image);
-		appInfoImage.setImageBitmap(item);
-
-		return view;
+		imageView.setImageBitmap(item);
+		return imageView;
 	}
 }

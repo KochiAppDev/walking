@@ -1,54 +1,81 @@
 package com.example.walking;
 
-import android.content.Context;
+import android.bluetooth.BluetoothAdapter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationProvider;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.RadioGroup;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Marker;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback{
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, SensorEventListener {
 
-	private boolean state;
 	public static Notice notice;
 	public GoogleMap mMap;
 	private Setting setting;
 	public static NameSet nameSet;
-	private ArrayList<Account> date = new ArrayList<>();
-	private MapFragment mapFragment;
 	private MyGPS myGPS;
+
+	private MapFragment mapFragment;
+
+	private SensorManager manager;
+	private Sensor sensor;
+	private long lastUpdate = 0;
+	private static final int SHAKE_THRESHOLD = 800;
+	private int last_x = 0;
+	private int last_y = 0;
+	private int last_z = 0;
+
+	private Account user;
+	private ArrayList<Account> group = new ArrayList<Account>();
+	public static final Bitmap[] color =new Bitmap[8];
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		state = sp.getBoolean("InitState", true);
+		boolean state = sp.getBoolean("InitState", true);
 		notice = new Notice(this);
 		Explanation explanation = new Explanation(this);
 		nameSet = new NameSet(this);
 		myGPS = new MyGPS(this);
+		Resources r = getResources();
+		color[0] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		color[1] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		color[2] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		color[3] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		color[4] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		color[5] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		color[6] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		color[7] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		manager = (SensorManager)getSystemService(SENSOR_SERVICE);
+		sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (!mBluetoothAdapter.isEnabled()) {
+			boolean btEnable = mBluetoothAdapter.isEnabled();
+		}
 		if (state) {
 			explanation.MysetContentView();
 		}
@@ -57,33 +84,61 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	@Override
 	protected void onResume() {
 		super.onResume();
+		manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		state = sp.getBoolean("InitState", true);
+		boolean state = sp.getBoolean("InitState", true);
 		if (!state) {
 			setContentView(R.layout.activity_map);
 			// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 			mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
 			mapFragment.getMapAsync(this);
 
-			ArrayList<Bitmap> listBitmap = new ArrayList<>();
-			Resources r = getResources();
-			Bitmap bmp = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-			listBitmap.add(bmp);
-			listBitmap.add(bmp);
+			ArrayList<Integer> iconlist = new ArrayList<>();
+			/*listBitmap.add(0);
+			listBitmap.add(1);*/
 			ListView list = (ListView) findViewById(R.id.buttonList);
-			ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, listBitmap);
-			setting = new Setting(this);
-			Account account = new Account(0, 1);
-			date.add(account);
-			account = new Account(1, 0);
-			date.add(account);
+			try {
+				setGroup();
+				iconlist.add(user.getIcon());
+				for(Account account : group){
+					iconlist.add(account.getIcon());
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
 			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					setting.MysetContentView(date.get(position));
+					setting.MysetContentView(group.get(position));
 					getFragmentManager().beginTransaction().remove(mapFragment).commit();
 				}
 			});
 			list.setAdapter(adapter);
+			myGPS.setting();
+			myGPS.startGPS();
+		}
+	}
+
+	private void setGroup() throws JSONException {
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		String userID = sp.getString("userID","-1");
+		if(userID.equals("-1")){return;}
+		String url;
+		String req;
+		url = "https://kochi-app-dev-walking.herokuapp.com/group";
+		req = "id=" + userID;
+		JSONObject json = HttpPost.exec_post(url,req);
+		JSONArray jsonArray = json.getJSONArray("group");
+		for(int i=0; i<jsonArray.length(); i++){
+			JSONObject jsonObject = jsonArray.getJSONObject(i);
+			int id = jsonObject.getInt("id");
+			String name = jsonObject.getString("name");
+			boolean type = false;
+			if(jsonObject.getInt("type") == 0){
+				type = true;
+			}
+			int icon = jsonObject.getInt("icon");
+			group.add(new Account(id, name, type, icon));
 		}
 	}
 
@@ -92,10 +147,58 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		super.onPause();
 		myGPS.stopGPS();
 		getFragmentManager().beginTransaction().remove(mapFragment).commit();
+		manager.unregisterListener(this);
 	}
 
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
 		mMap = googleMap;
+		if (myGPS.provider != null) {
+			if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+				// TODO: Consider calling
+				//    ActivityCompat#requestPermissions
+				// here to request the missing permissions, and then overriding
+				//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+				//                                          int[] grantResults)
+				// to handle the case where the user grants the permission. See the documentation
+				// for ActivityCompat#requestPermissions for more details.
+				return;
+			}
+			myGPS.setMarker(myGPS.locationManager.getLastKnownLocation(myGPS.provider), "name");
+		}
+		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener () {
+			@Override
+			public boolean onMarkerClick(Marker marker) {
+				int id = Integer.valueOf(marker.getId().split("m")[1]);
+				setting.MysetContentView(group.get(id));
+				getFragmentManager().beginTransaction().remove(mapFragment).commit();
+				return true;
+			}
+		});
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		long curTime = System.currentTimeMillis();
+		// only allow one update every 100ms.
+		if ((curTime - lastUpdate) > 100) {
+			long diffTime = (curTime - lastUpdate);
+			lastUpdate = curTime;
+			int x = (int) event.values[0];
+			int y = (int) event.values[1];
+			int z = (int) event.values[2];
+			float speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000;
+			if (speed > SHAKE_THRESHOLD) {
+
+			}
+			last_x = x;
+			last_y = y;
+			last_z = z;
+		}
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
 	}
 }
