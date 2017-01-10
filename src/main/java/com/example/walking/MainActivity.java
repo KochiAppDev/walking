@@ -1,6 +1,12 @@
 package com.example.walking;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -18,6 +24,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -48,7 +55,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	private int last_y = 0;
 	private int last_z = 0;
 
-	private Account user;
+	private BluetoothAdapter mBluetoothAdapter;
+	private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (BluetoothDevice.ACTION_FOUND.equals(action)){
+				// 見つけたデバイス情報の取得
+				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+				BluetoothClientThread bct = new BluetoothClientThread(device, mBluetoothAdapter);
+				bct.start();
+				startDetect();
+			}
+		}
+	};
+	private BluetoothServerThread bst;
+
+	public Account user;
 	private ArrayList<Account> group = new ArrayList<Account>();
 	public static final Bitmap[] color =new Bitmap[8];
 
@@ -72,9 +95,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		color[7] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
 		manager = (SensorManager)getSystemService(SENSOR_SERVICE);
 		sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		if (!mBluetoothAdapter.isEnabled()) {
-			boolean btEnable = mBluetoothAdapter.isEnabled();
+		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (mBluetoothAdapter == null) {
+			Toast toast = Toast.makeText(this, "この端末はグループの追加ができません", Toast.LENGTH_SHORT);
+			toast.show();
 		}
 		if (state) {
 			explanation.MysetContentView();
@@ -93,14 +117,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
 			mapFragment.getMapAsync(this);
 
+			if (!mBluetoothAdapter.isEnabled()) {
+				//OFFだった場合、ONにすることを促すダイアログを表示する画面に遷移
+				Intent btOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+				startActivityForResult(btOn, 0);
+			}else{
+				startDetect();
+				bst = new BluetoothServerThread(this, mBluetoothAdapter);
+				bst.start();
+			}
+
 			ArrayList<Integer> iconlist = new ArrayList<>();
-			/*listBitmap.add(0);
-			listBitmap.add(1);*/
 			ListView list = (ListView) findViewById(R.id.buttonList);
 			try {
 				setGroup();
 				iconlist.add(user.getIcon());
-				for(Account account : group){
+				for (Account account : group) {
 					iconlist.add(account.getIcon());
 				}
 			} catch (JSONException e) {
@@ -117,6 +149,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			myGPS.setting();
 			myGPS.startGPS();
 		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int ResultCode, Intent date){
+		switch (requestCode){
+			case 0:
+				if (ResultCode == Activity.RESULT_OK) {
+					startDetect();
+					bst = new BluetoothServerThread(this, mBluetoothAdapter);
+					bst.start();
+				} else {
+					Toast toast = Toast.makeText(this, "オンにしないとグループの追加はできません", Toast.LENGTH_SHORT);
+					toast.show();
+				}
+				break;
+			default:
+		}
+	}
+
+	private void startDetect(){
+		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+		registerReceiver(mReceiver, filter);
+
+		mBluetoothAdapter.startDiscovery();
 	}
 
 	private void setGroup() throws JSONException {
@@ -148,6 +204,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		myGPS.stopGPS();
 		getFragmentManager().beginTransaction().remove(mapFragment).commit();
 		manager.unregisterListener(this);
+		if (mBluetoothAdapter.isDiscovering()) {
+			mBluetoothAdapter.cancelDiscovery();
+		}
+		unregisterReceiver(mReceiver);
+		bst.runStop();
 	}
 
 	@Override
@@ -189,7 +250,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			int z = (int) event.values[2];
 			float speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000;
 			if (speed > SHAKE_THRESHOLD) {
-
+				Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+				startActivityForResult(intent, 1);
 			}
 			last_x = x;
 			last_y = y;
