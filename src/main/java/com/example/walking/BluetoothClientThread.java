@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 public class BluetoothClientThread extends Thread {
 	private final BluetoothSocket clientSocket;
@@ -47,7 +48,13 @@ public class BluetoothClientThread extends Thread {
 			clientSocket.close();
 			String url = "https://kochi-app-dev-walking.herokuapp.com/info";
 			String req = "id=" + userID;
-			JSONObject json = HttpPost.exec_post(url,req);
+			HttpPost httpPost = new HttpPost();
+			httpPost.execute(url,req);
+			MainActivity.mDone = new CountDownLatch(1);
+			try {
+				MainActivity.mDone.await();
+			} catch (InterruptedException e) {}
+			JSONObject json = httpPost.jsonObject;
 			AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
 			alertDialog.setTitle("グループの追加");
 			alertDialog.setMessage(json.getString("name")+"をグループに追加しますか？");
@@ -56,7 +63,13 @@ public class BluetoothClientThread extends Thread {
 				public void onClick(DialogInterface dialog, int which) {
 					String url = "https://kochi-app-dev-walking.herokuapp.com/add";
 					String req = "u1=" + context.user.getID() + "&u1=" + userID;
-					JSONObject json = HttpPost.exec_post(url,req);
+					HttpPost httpPost = new HttpPost();
+					httpPost.execute(url,req);
+					MainActivity.mDone = new CountDownLatch(1);
+					try {
+						MainActivity.mDone.await();
+					} catch (InterruptedException e) {}
+					JSONObject json = httpPost.jsonObject;
 					try {
 						context.user.setGroupID(json.getInt("group_id"));
 					} catch (JSONException e) {

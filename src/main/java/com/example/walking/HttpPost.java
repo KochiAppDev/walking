@@ -1,5 +1,7 @@
 package com.example.walking;
 
+import android.os.AsyncTask;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,14 +17,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 
-public class HttpPost {
-	public static JSONObject exec_post(String urlSt, String str) {
+public final class HttpPost extends AsyncTask<String, Void, Void> {
+
+	public JSONObject jsonObject;
+
+	@Override
+	protected Void doInBackground(String... params) {
 		HttpURLConnection con = null;
 		URL url = null;
 
 		try {
 			// URLの作成
-			url = new URL(urlSt);
+			url = new URL(params[0]);
 			// 接続用HttpURLConnectionオブジェクト作成
 			con = (HttpURLConnection)url.openConnection();
 			// リクエストメソッドの設定
@@ -39,7 +45,7 @@ public class HttpPost {
 			// データを送信
 			OutputStream out = con.getOutputStream();
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
-			writer.write(str);
+			writer.write(params[1]);
 			writer.flush();
 			writer.close();
 			out.close();
@@ -55,14 +61,10 @@ public class HttpPost {
 			String readSt = sb.toString();
 			in.close();
 
-			JSONObject json = new JSONObject(readSt);
+			jsonObject = new JSONObject(readSt);
+			MainActivity.mDone.countDown();
 
-			return json;
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
+		} catch (IOException | JSONException e) {
 			e.printStackTrace();
 		}
 		return null;

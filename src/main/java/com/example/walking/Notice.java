@@ -45,12 +45,11 @@ class Notice implements View.OnClickListener,CompoundButton.OnCheckedChangeListe
 			int sph = speed_spinner.getSelectedItemPosition();
 			boolean ds = distance_switch.isChecked();
 			boolean ss = speed_switch.isChecked();
-			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-			sp.edit().putInt("距離", range).apply();
-			sp.edit().putInt("時速", sph).apply();
-			sp.edit().putBoolean("距離", ds).apply();
-			sp.edit().putBoolean("時速", ss).apply();
-			sp.edit().putBoolean("InitState", false).apply();
+			MainActivity.sp.edit().putInt("距離", range).apply();
+			MainActivity.sp.edit().putInt("時速", sph).apply();
+			MainActivity.sp.edit().putBoolean("距離", ds).apply();
+			MainActivity.sp.edit().putBoolean("時速", ss).apply();
+			MainActivity.sp.edit().putBoolean("InitState", false).apply();
 			context.onResume();
 		}
 	}

@@ -36,8 +36,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, SensorEventListener {
+
+	public static SharedPreferences sp;
+	public static CountDownLatch mDone;
 
 	public static Notice notice;
 	public GoogleMap mMap;
@@ -78,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		boolean state = sp.getBoolean("InitState", true);
 		notice = new Notice(this);
 		Explanation explanation = new Explanation(this);
@@ -109,7 +113,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	protected void onResume() {
 		super.onResume();
 		manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		boolean state = sp.getBoolean("InitState", true);
 		if (!state) {
 			setContentView(R.layout.activity_map);
@@ -117,19 +120,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
 			mapFragment.getMapAsync(this);
 
-			if (!mBluetoothAdapter.isEnabled()) {
-				//OFFだった場合、ONにすることを促すダイアログを表示する画面に遷移
-				Intent btOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-				startActivityForResult(btOn, 0);
-			}else{
-				startDetect();
-				bst = new BluetoothServerThread(this, mBluetoothAdapter);
-				bst.start();
+			if (mBluetoothAdapter != null) {
+				if (!mBluetoothAdapter.isEnabled()) {
+					//OFFだった場合、ONにすることを促すダイアログを表示する画面に遷移
+					Intent btOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+					startActivityForResult(btOn, 0);
+				} else {
+					startDetect();
+					bst = new BluetoothServerThread(this, mBluetoothAdapter);
+					bst.start();
+				}
 			}
+
+			String url = "https://kochi-app-dev-walking.herokuapp.com/info";
+			String req = "id=" + sp.getString("userID","-1");
+			HttpPost httpPost = new HttpPost();
+
+			httpPost.execute(url,req);
+			mDone = new CountDownLatch(1);
+			try {
+				mDone.await();
+			} catch (InterruptedException e) {}
+			JSONObject json = httpPost.jsonObject;
+			setUser(json);
 
 			ArrayList<Integer> iconlist = new ArrayList<>();
 			ListView list = (ListView) findViewById(R.id.buttonList);
-			try {
+			/*try {
 				setGroup();
 				iconlist.add(user.getIcon());
 				for (Account account : group) {
@@ -137,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				}
 			} catch (JSONException e) {
 				e.printStackTrace();
-			}
+			}*/
 			ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
 			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -175,15 +192,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		mBluetoothAdapter.startDiscovery();
 	}
 
+	private void setUser(JSONObject json){
+		try {
+			int id = json.getInt("id");
+			if(id == -1){
+				return;
+			}
+			String name = json.getString("name");
+			boolean type = false;
+			if(json.getInt("type") == 0){
+				type = true;
+			}
+			int icon = json.getInt("icon");
+			user = new Account(id, name, type, icon);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void setGroup() throws JSONException {
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String userID = sp.getString("userID","-1");
 		if(userID.equals("-1")){return;}
 		String url;
 		String req;
 		url = "https://kochi-app-dev-walking.herokuapp.com/group";
 		req = "id=" + userID;
-		JSONObject json = HttpPost.exec_post(url,req);
+		HttpPost httpPost = new HttpPost();
+		httpPost.execute(url,req);
+		mDone = new CountDownLatch(1);
+		try {
+			mDone.await();
+		} catch (InterruptedException e) {}
+		JSONObject json = httpPost.jsonObject;
 		JSONArray jsonArray = json.getJSONArray("group");
 		for(int i=0; i<jsonArray.length(); i++){
 			JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -204,10 +244,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		myGPS.stopGPS();
 		getFragmentManager().beginTransaction().remove(mapFragment).commit();
 		manager.unregisterListener(this);
-		if (mBluetoothAdapter.isDiscovering()) {
-			mBluetoothAdapter.cancelDiscovery();
+		if(mBluetoothAdapter != null) {
+			if (mBluetoothAdapter.isDiscovering()) {
+				mBluetoothAdapter.cancelDiscovery();
+				unregisterReceiver(mReceiver);
+			}
 		}
-		unregisterReceiver(mReceiver);
 		bst.runStop();
 	}
 

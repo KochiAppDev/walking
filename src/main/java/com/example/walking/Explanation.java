@@ -25,16 +25,14 @@ public class Explanation implements View.OnClickListener {
 			context.findViewById(R.id.selection_decision).setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					SharedPreferences sp;
 					if(v.getId() == R.id.selection_decision){
 						RadioGroup radioGroup = (RadioGroup) context.findViewById(R.id.radio);
 						int checkedId = radioGroup.getCheckedRadioButtonId();
-						sp = PreferenceManager.getDefaultSharedPreferences(context);
 						if (-1 != checkedId) {
 							if (checkedId == R.id.type0) {
-								sp.edit().putInt("tp", 0).apply();
+								MainActivity.sp.edit().putInt("tp", 0).apply();
 							} else {
-								sp.edit().putInt("tp", 1).apply();
+								MainActivity.sp.edit().putInt("tp", 1).apply();
 							}
 							MainActivity.nameSet.MysetContentView();
 						}

@@ -13,6 +13,8 @@ import com.google.firebase.iid.FirebaseInstanceIdService;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.concurrent.CountDownLatch;
+
 public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
 	@Override
 	public void onTokenRefresh() {
@@ -24,12 +26,11 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
 	}
 	private void sendRegistrationToServer(String token) {
 		// TODO: Implement this method to send token to your app server.
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String vr = Build.VERSION.RELEASE;
 		String id;
 		String url;
-		if(sp.getBoolean("tokenset", false)) {
-			id = sp.getString("userID","-1");
+		if(MainActivity.sp.getBoolean("tokenSet", false)) {
+			id = MainActivity.sp.getString("userID","-1");
 			if(id.equals("-1")){return;}
 			url = "https://kochi-app-dev-walking.herokuapp.com/token";
 		}else{
@@ -37,9 +38,17 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
 			url = "https://kochi-app-dev-walking.herokuapp.com/device";
 		}
 		String req = "id=" + id + "&tk=" + token + "&os=0&vr=" + vr;
-		JSONObject json = HttpPost.exec_post(url,req);
+		HttpPost httpPost = new HttpPost();
+		httpPost.execute(url,req);
+		MainActivity.mDone = new CountDownLatch(1);
 		try {
-			sp.edit().putString("userID", json.getString("user_id")).apply();
+			MainActivity.mDone.await();
+		} catch (InterruptedException e) {}
+		JSONObject json = httpPost.jsonObject;
+		try {
+			String user_id = json.getString("user_id");
+			MainActivity.sp.edit().putString("userID", user_id).apply();
+			MainActivity.sp.edit().putBoolean("tokenSet", true).apply();
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
