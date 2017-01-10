@@ -20,7 +20,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 class MyGPS implements LocationListener {
 	LocationManager locationManager;
 	private MainActivity mainActivity;
-	Marker marker;
+	private Marker marker;
 	String provider = null;
 	private double latitude = 0;
 	private double longitude = 0;
@@ -110,7 +110,7 @@ class MyGPS implements LocationListener {
 
 	@Override
 	public void onProviderDisabled(String provider) {
-		if (provider == LocationManager.GPS_PROVIDER) {
+		if (provider.equals(LocationManager.GPS_PROVIDER)) {
 			stopGPS();
 			startGPS();
 		}
@@ -123,7 +123,7 @@ class MyGPS implements LocationListener {
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-		if (status == LocationProvider.AVAILABLE && provider == LocationManager.GPS_PROVIDER) {
+		if (status == LocationProvider.AVAILABLE && provider.equals(LocationManager.GPS_PROVIDER)) {
 			stopGPS();
 			startGPS();
 		}
