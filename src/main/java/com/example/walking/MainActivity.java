@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		super.onCreate(savedInstanceState);
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		boolean state = sp.getBoolean("InitState", true);
+		setting = new Setting(this);
 		notice = new Notice(this);
 		Explanation explanation = new Explanation(this);
 		nameSet = new NameSet(this);
@@ -146,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 			ArrayList<Integer> iconlist = new ArrayList<>();
 			ListView list = (ListView) findViewById(R.id.buttonList);
-			/*try {
+			try {
 				setGroup();
 				iconlist.add(user.getIcon());
 				for (Account account : group) {
@@ -154,11 +155,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				}
 			} catch (JSONException e) {
 				e.printStackTrace();
-			}*/
+			}
 			ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
 			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					setting.MysetContentView(group.get(position));
+					if(position == 0){
+						setting.MysetContentView(user);
+					}else {
+						setting.MysetContentView(group.get(position - 1));
+					}
 					getFragmentManager().beginTransaction().remove(mapFragment).commit();
 				}
 			});
@@ -204,37 +209,40 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				type = true;
 			}
 			int icon = json.getInt("icon");
+			int groupID = json.getInt("group");
 			user = new Account(id, name, type, icon);
+			user.setGroupID(groupID);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void setGroup() throws JSONException {
-		String userID = sp.getString("userID","-1");
-		if(userID.equals("-1")){return;}
+		if(user.getID() == -1){return;}
 		String url;
 		String req;
 		url = "https://kochi-app-dev-walking.herokuapp.com/group";
-		req = "id=" + userID;
+		req = "gp=" + user.getGroupID();
 		HttpPost httpPost = new HttpPost();
 		httpPost.execute(url,req);
 		mDone = new CountDownLatch(1);
 		try {
 			mDone.await();
 		} catch (InterruptedException e) {}
-		JSONObject json = httpPost.jsonObject;
-		JSONArray jsonArray = json.getJSONArray("group");
+		JSONArray jsonArray = httpPost.jsonArray;
+		group.clear();
 		for(int i=0; i<jsonArray.length(); i++){
 			JSONObject jsonObject = jsonArray.getJSONObject(i);
 			int id = jsonObject.getInt("id");
-			String name = jsonObject.getString("name");
-			boolean type = false;
-			if(jsonObject.getInt("type") == 0){
-				type = true;
+			if(id != user.getID()) {
+				String name = jsonObject.getString("name");
+				boolean type = false;
+				if (jsonObject.getInt("type") == 0) {
+					type = true;
+				}
+				int icon = jsonObject.getInt("icon");
+				group.add(new Account(id, name, type, icon));
 			}
-			int icon = jsonObject.getInt("icon");
-			group.add(new Account(id, name, type, icon));
 		}
 	}
 

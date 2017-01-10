@@ -2,8 +2,10 @@ package com.example.walking;
 
 import android.os.AsyncTask;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,6 +22,7 @@ import java.net.URL;
 public final class HttpPost extends AsyncTask<String, Void, Void> {
 
 	public JSONObject jsonObject;
+	public JSONArray jsonArray;
 
 	@Override
 	protected Void doInBackground(String... params) {
@@ -61,7 +64,12 @@ public final class HttpPost extends AsyncTask<String, Void, Void> {
 			String readSt = sb.toString();
 			in.close();
 
-			jsonObject = new JSONObject(readSt);
+			Object json = new JSONTokener(readSt).nextValue();
+			if (json instanceof JSONObject) {
+				jsonObject = (JSONObject) json;
+			}else if (json instanceof JSONArray){
+				jsonArray = (JSONArray) json;
+			}
 			MainActivity.mDone.countDown();
 
 		} catch (IOException | JSONException e) {
