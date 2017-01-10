@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			if (BluetoothDevice.ACTION_FOUND.equals(action)){
 				// 見つけたデバイス情報の取得
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				BluetoothClientThread bct = new BluetoothClientThread(device, mBluetoothAdapter);
+				BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
 				bct.start();
 				startDetect();
 			}
