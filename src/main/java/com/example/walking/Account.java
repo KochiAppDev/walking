@@ -1,5 +1,7 @@
 package com.example.walking;
 
+import java.sql.Time;
+
 public class Account {
 	private int ID;
 	private String usname;
@@ -8,8 +10,11 @@ public class Account {
 	private int groupID;
 	private int range;
 	private int sph;
+	private long lat;
+	private long lon;
+	private long[][] rt;
+	private Time ts;
 
-	public Account(){}
 	public Account(int ID, String usname, boolean type, int icon){
 		this.ID = ID;
 		this.usname = usname;
@@ -71,5 +76,37 @@ public class Account {
 
 	public int getSph(){
 		return sph;
+	}
+
+	public long getLat() {
+		return lat;
+	}
+
+	public void setLat(long lat) {
+		this.lat = lat;
+	}
+
+	public long getLon() {
+		return lon;
+	}
+
+	public void setLon(long lon) {
+		this.lon = lon;
+	}
+
+	public long[][] getRt() {
+		return rt;
+	}
+
+	public void setRt(long[][] rt) {
+		this.rt = rt;
+	}
+
+	public Time getTs() {
+		return ts;
+	}
+
+	public void setTs(Time ts) {
+		this.ts = ts;
 	}
 }

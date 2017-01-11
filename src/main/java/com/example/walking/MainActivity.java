@@ -35,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
@@ -212,6 +213,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			int groupID = json.getInt("group");
 			user = new Account(id, name, type, icon);
 			user.setGroupID(groupID);
+			String url = "https://kochi-app-dev-walking.herokuapp.com/position";
+			String req = "id=" + id;
+			HttpPost httpPost = new HttpPost();
+			httpPost.execute(url,req);
+			mDone = new CountDownLatch(1);
+			try {
+				mDone.await();
+			} catch (InterruptedException e) {}
+			json = httpPost.jsonObject;
+			long lat = json.getLong("lat");
+			long lon = json.getLong("lon");
+			Time ts = (Time) json.get("ts");
+			user.setLat(lat);
+			user.setLon(lon);
+			user.setTs(ts);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}

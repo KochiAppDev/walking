@@ -17,6 +17,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.concurrent.CountDownLatch;
+
 class MyGPS implements LocationListener {
 	LocationManager locationManager;
 	private MainActivity mainActivity;
@@ -101,6 +106,25 @@ class MyGPS implements LocationListener {
 		LatLng sydney = new LatLng(latitude, longitude);
 		marker.setPosition(sydney);
 		mainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+	}
+
+	private void LocationSet(){
+		String url = "https://kochi-app-dev-walking.herokuapp.com/position";
+		String req = "id=" + MainActivity.sp.getString("userID","-1") + "&lat=" + latitude + "&lon=" + longitude;
+		HttpPost httpPost = new HttpPost();
+		httpPost.execute(url,req);
+		MainActivity.mDone = new CountDownLatch(1);
+		try {
+			MainActivity.mDone.await();
+		} catch (InterruptedException e) {}
+		JSONObject json = httpPost.jsonObject;
+		try {
+			int result = json.getInt("result");
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	@Override
