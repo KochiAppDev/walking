@@ -121,6 +121,7 @@ class MyGPS implements LocationListener {
 		try {
 			int result = json.getInt("result");
 
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
