@@ -120,8 +120,6 @@ class MyGPS implements LocationListener {
 		JSONObject json = httpPost.jsonObject;
 		try {
 			int result = json.getInt("result");
-
-
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
