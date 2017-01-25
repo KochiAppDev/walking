@@ -60,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	private int last_y = 0;
 	private int last_z = 0;
 
+	public boolean rFlag = false;
+	public ArrayList<double[]> root = new ArrayList<>();
+
 	private BluetoothAdapter mBluetoothAdapter;
 	private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
 		@Override

@@ -20,6 +20,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
 class MyGPS implements LocationListener {
@@ -100,14 +101,6 @@ class MyGPS implements LocationListener {
 		}
 	}
 
-	private void setMP(Location location){
-		latitude = location.getLatitude();
-		longitude = location.getLongitude();
-		LatLng sydney = new LatLng(latitude, longitude);
-		marker.setPosition(sydney);
-		mainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-	}
-
 	private void LocationSet(){
 		String url = "https://kochi-app-dev-walking.herokuapp.com/position";
 		String req = "id=" + MainActivity.sp.getString("userID","-1") + "&lat=" + latitude + "&lon=" + longitude;
@@ -118,17 +111,30 @@ class MyGPS implements LocationListener {
 			MainActivity.mDone.await();
 		} catch (InterruptedException e) {}
 		JSONObject json = httpPost.jsonObject;
+		int result=0;
 		try {
-			int result = json.getInt("result");
+			result = json.getInt("result");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 
+		if(mainActivity.rFlag){
+			double[] location = {latitude,longitude};
+			mainActivity.root.add(location);
+		}
+		if(result == -1){
+			LocationSet();
+		}
 	}
 
 	@Override
 	public void onLocationChanged(Location location) {
-		setMP(location);
+		latitude = location.getLatitude();
+		longitude = location.getLongitude();
+		LatLng sydney = new LatLng(latitude, longitude);
+		marker.setPosition(sydney);
+		mainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+		LocationSet();
 	}
 
 	@Override
