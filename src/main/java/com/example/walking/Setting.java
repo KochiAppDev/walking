@@ -43,7 +43,7 @@ public class Setting implements View.OnClickListener {
 					for(int i=0; i<rootArray.length; i++){
 						rootArray[i] = context.root.get(i);
 					}
-					String url = "https://kochi-app-dev-walking.herokuapp.com/position";
+					String url = "https://kochi-app-dev-walking.herokuapp.com/route";
 					String req = "id=" + MainActivity.sp.getString("userID","-1") + "&rt" + rootArray;
 					HttpPost httpPost = new HttpPost();
 					httpPost.execute(url,req);

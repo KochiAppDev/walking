@@ -224,10 +224,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			try {
 				mDone.await();
 			} catch (InterruptedException e) {}
-			json = httpPost.jsonObject;
-			long lat = json.getLong("lat");
-			long lon = json.getLong("lon");
-			Time ts = (Time) json.get("ts");
+			JSONObject jsonObject = httpPost.jsonObject;
+			long lat = jsonObject.getLong("lat");
+			long lon = jsonObject.getLong("lon");
+			String ts = (String) jsonObject.get("ts");
 			user.setLat(lat);
 			user.setLon(lon);
 			user.setTs(ts);
