@@ -70,11 +70,11 @@ public final class HttpPost extends AsyncTask<String, Void, Void> {
 			}else if (json instanceof JSONArray){
 				jsonArray = (JSONArray) json;
 			}
-			MainActivity.mDone.countDown();
 
 		} catch (IOException | JSONException e) {
 			e.printStackTrace();
 		}
+		MainActivity.mDone.countDown();
 		return null;
 	}
 }
