@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			if (BluetoothDevice.ACTION_FOUND.equals(action)){
+			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
 				// 見つけたデバイス情報の取得
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 				BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 	public Account user;
 	private ArrayList<Account> group = new ArrayList<Account>();
-	public static final Bitmap[] color =new Bitmap[8];
+	public static final Bitmap[] color = new Bitmap[8];
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		color[5] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
 		color[6] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
 		color[7] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-		manager = (SensorManager)getSystemService(SENSOR_SERVICE);
+		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mBluetoothAdapter == null) {
@@ -138,14 +138,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			}
 
 			String url = "https://kochi-app-dev-walking.herokuapp.com/info";
-			String req = "id=" + sp.getString("userID","-1");
+			String req = "id=" + sp.getString("userID", "-1");
 			HttpPost httpPost = new HttpPost();
 
-			httpPost.execute(url,req);
+			httpPost.execute(url, req);
 			mDone = new CountDownLatch(1);
 			try {
 				mDone.await();
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+			}
 			JSONObject json = httpPost.jsonObject;
 			setUser(json);
 
@@ -163,9 +164,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
 			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					if(position == 0){
+					if (position == 0) {
 						setting.MysetContentView(user);
-					}else {
+					} else {
 						setting.MysetContentView(group.get(position - 1));
 					}
 					getFragmentManager().beginTransaction().remove(mapFragment).commit();
@@ -178,8 +179,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	}
 
 	@Override
-	protected void onActivityResult(int requestCode, int ResultCode, Intent date){
-		switch (requestCode){
+	protected void onActivityResult(int requestCode, int ResultCode, Intent date) {
+		switch (requestCode) {
 			case 0:
 				if (ResultCode == Activity.RESULT_OK) {
 					startDetect();
@@ -194,22 +195,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		}
 	}
 
-	private void startDetect(){
+	private void startDetect() {
 		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
 		registerReceiver(mReceiver, filter);
 
 		mBluetoothAdapter.startDiscovery();
 	}
 
-	private void setUser(JSONObject json){
+	private void setUser(JSONObject json) {
 		try {
 			int id = json.getInt("id");
-			if(id == -1){
+			if (id == -1) {
 				return;
 			}
 			String name = json.getString("name");
 			boolean type = false;
-			if(json.getInt("type") == 0){
+			if (json.getInt("type") == 0) {
 				type = true;
 			}
 			int icon = json.getInt("icon");
@@ -219,41 +220,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			String url = "https://kochi-app-dev-walking.herokuapp.com/position";
 			String req = "id=" + id;
 			HttpPost httpPost = new HttpPost();
-			httpPost.execute(url,req);
+			httpPost.execute(url, req);
 			mDone = new CountDownLatch(1);
 			try {
 				mDone.await();
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+			}
 			JSONObject jsonObject = httpPost.jsonObject;
-			long lat = jsonObject.getLong("lat");
-			long lon = jsonObject.getLong("lon");
-			String ts = (String) jsonObject.get("ts");
-			user.setLat(lat);
-			user.setLon(lon);
-			user.setTs(ts);
+			if (jsonObject != null) {
+				long lat = jsonObject.getLong("lat");
+				long lon = jsonObject.getLong("lon");
+				String ts = (String) jsonObject.get("ts");
+				user.setLat(lat);
+				user.setLon(lon);
+				user.setTs(ts);
+			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void setGroup() throws JSONException {
-		if(user.getID() == -1){return;}
+		if (user.getID() == -1) {
+			return;
+		}
 		String url;
 		String req;
 		url = "https://kochi-app-dev-walking.herokuapp.com/group";
 		req = "gp=" + user.getGroupID();
 		HttpPost httpPost = new HttpPost();
-		httpPost.execute(url,req);
+		httpPost.execute(url, req);
 		mDone = new CountDownLatch(1);
 		try {
 			mDone.await();
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+		}
 		JSONArray jsonArray = httpPost.jsonArray;
 		group.clear();
-		for(int i=0; i<jsonArray.length(); i++){
+		for (int i = 0; i < jsonArray.length(); i++) {
 			JSONObject jsonObject = jsonArray.getJSONObject(i);
 			int id = jsonObject.getInt("id");
-			if(id != user.getID()) {
+			if (id != user.getID()) {
 				String name = jsonObject.getString("name");
 				boolean type = false;
 				if (jsonObject.getInt("type") == 0) {
@@ -271,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		myGPS.stopGPS();
 		getFragmentManager().beginTransaction().remove(mapFragment).commit();
 		manager.unregisterListener(this);
-		if(mBluetoothAdapter != null) {
+		if (mBluetoothAdapter != null) {
 			if (mBluetoothAdapter.isDiscovering()) {
 				mBluetoothAdapter.cancelDiscovery();
 				unregisterReceiver(mReceiver);
@@ -294,7 +301,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				// for ActivityCompat#requestPermissions for more details.
 				return;
 			}
-			myGPS.setMarker(myGPS.locationManager.getLastKnownLocation(myGPS.provider), "name");
+			/*myGPS.setMarker(myGPS.locationManager.getLastKnownLocation(myGPS.provider), "name");*/
+			mMap.setMyLocationEnabled(true);
 		}
 		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener () {
 			@Override
