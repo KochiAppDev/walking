@@ -132,9 +132,9 @@ class MyGPS implements LocationListener {
 		latitude = location.getLatitude();
 		longitude = location.getLongitude();
 		LatLng sydney = new LatLng(latitude, longitude);
-		/*marker.setPosition(sydney);
+		marker.setPosition(sydney);
 		mainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-		LocationSet();*/
+		LocationSet();
 	}
 
 	@Override

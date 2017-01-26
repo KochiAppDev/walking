@@ -45,7 +45,7 @@ public class Setting implements View.OnClickListener {
 						rootArray[i] = context.root.get(i);
 					}
 					String url = "https://kochi-app-dev-walking.herokuapp.com/route";
-					String req = "id=" + MainActivity.sp.getString("userID","-1") + "&rt" + Arrays.deepToString(rootArray);
+					String req = "id=" + MainActivity.sp.getString("userID","-1") + "&rt=" + rootArray;
 					HttpPost httpPost = new HttpPost();
 					httpPost.execute(url,req);
 					MainActivity.mDone = new CountDownLatch(1);
@@ -53,12 +53,6 @@ public class Setting implements View.OnClickListener {
 						MainActivity.mDone.await();
 					} catch (InterruptedException e) {}
 					JSONObject json = httpPost.jsonObject;
-					int result=0;
-					try {
-						result = json.getInt("result");
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
 				}else {
 					context.rFlag = true;
 					context.root.clear();

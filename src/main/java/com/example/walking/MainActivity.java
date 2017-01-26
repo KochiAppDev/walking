@@ -301,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				// for ActivityCompat#requestPermissions for more details.
 				return;
 			}
-			/*myGPS.setMarker(myGPS.locationManager.getLastKnownLocation(myGPS.provider), "name");*/
+			myGPS.setMarker(myGPS.locationManager.getLastKnownLocation(myGPS.provider), "name");
 			mMap.setMyLocationEnabled(true);
 		}
 		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener () {
