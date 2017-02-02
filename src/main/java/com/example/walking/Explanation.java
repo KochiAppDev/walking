@@ -1,10 +1,9 @@
 package com.example.walking;
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.RadioGroup;
 
+//初回起動時の画面用のクラス
 public class Explanation implements View.OnClickListener {
 
 	private MainActivity context;

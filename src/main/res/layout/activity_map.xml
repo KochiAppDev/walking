@@ -20,4 +20,10 @@
         android:layout_width="92dp"
         android:background="#00000000"/>
 
+    <Button
+        android:text="ルート"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/root"/>
+
 </FrameLayout>

@@ -1,5 +1,7 @@
 package com.example.walking;
 
+import android.*;
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -16,30 +18,36 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, SensorEventListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, SensorEventListener, View.OnClickListener {
 
 	public static SharedPreferences sp;
 	public static CountDownLatch mDone;
@@ -80,19 +88,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	private BluetoothServerThread bst;
 
 	public Account user;
+	private Marker[] markers;
 	private ArrayList<Account> group = new ArrayList<Account>();
 	public static final Bitmap[] color = new Bitmap[8];
+	/**
+	 * ATTENTION: This was auto-generated to implement the App Indexing API.
+	 * See https://g.co/AppIndexing/AndroidStudio for more information.
+	 */
+	private GoogleApiClient client;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		boolean state = sp.getBoolean("InitState", true);
+
+		//各種クラスの生成
 		setting = new Setting(this);
 		notice = new Notice(this);
 		Explanation explanation = new Explanation(this);
 		nameSet = new NameSet(this);
 		myGPS = new MyGPS(this);
+
+		//画像を取得
 		Resources r = getResources();
 		color[0] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
 		color[1] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
@@ -102,16 +120,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		color[5] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
 		color[6] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
 		color[7] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+
+		//各種マネージャーやサービスの登録
 		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+		//Bluetoothの登録
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mBluetoothAdapter == null) {
 			Toast toast = Toast.makeText(this, "この端末はグループの追加ができません", Toast.LENGTH_SHORT);
 			toast.show();
 		}
+
+		//初回起動かの判定
 		if (state) {
 			explanation.MysetContentView();
 		}
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 	}
 
 	@Override
@@ -121,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		boolean state = sp.getBoolean("InitState", true);
 		if (!state) {
 			setContentView(R.layout.activity_map);
+			findViewById(R.id.root).setOnClickListener(this);
 			// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 			mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
 			mapFragment.getMapAsync(this);
@@ -202,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		mBluetoothAdapter.startDiscovery();
 	}
 
+	//ユーザー情報の登録
 	private void setUser(JSONObject json) {
 		try {
 			int id = json.getInt("id");
@@ -215,31 +244,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			}
 			int icon = json.getInt("icon");
 			int groupID = json.getInt("group");
+			//double[][] rt = json.getString("rt");
 			user = new Account(id, name, type, icon);
 			user.setGroupID(groupID);
-			String url = "https://kochi-app-dev-walking.herokuapp.com/position";
-			String req = "id=" + id;
-			HttpPost httpPost = new HttpPost();
-			httpPost.execute(url, req);
-			mDone = new CountDownLatch(1);
-			try {
-				mDone.await();
-			} catch (InterruptedException e) {
-			}
-			JSONObject jsonObject = httpPost.jsonObject;
-			if (jsonObject != null) {
-				long lat = jsonObject.getLong("lat");
-				long lon = jsonObject.getLong("lon");
-				String ts = (String) jsonObject.get("ts");
-				user.setLat(lat);
-				user.setLon(lon);
-				user.setTs(ts);
-			}
+			//user.setRt(rt);
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
+	//グループの取得
 	private void setGroup() throws JSONException {
 		if (user.getID() == -1) {
 			return;
@@ -291,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	public void onMapReady(GoogleMap googleMap) {
 		mMap = googleMap;
 		if (myGPS.provider != null) {
-			if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 				// TODO: Consider calling
 				//    ActivityCompat#requestPermissions
 				// here to request the missing permissions, and then overriding
@@ -304,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			myGPS.setMarker(myGPS.locationManager.getLastKnownLocation(myGPS.provider), "name");
 			mMap.setMyLocationEnabled(true);
 		}
-		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener () {
+		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 			@Override
 			public boolean onMarkerClick(Marker marker) {
 				int id = Integer.valueOf(marker.getId().split("m")[1]);
@@ -339,5 +354,51 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+	}
+
+	@Override
+	public void onClick(View v) {
+		long[][] rt = user.getRt();
+		markers = new Marker[rt.length];
+		for(int i=0; i<rt.length; i++){
+			LatLng sydney = new LatLng(rt[i][0],rt[i][1]);
+			markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+		}
+	}
+
+	/**
+	 * ATTENTION: This was auto-generated to implement the App Indexing API.
+	 * See https://g.co/AppIndexing/AndroidStudio for more information.
+	 */
+	public Action getIndexApiAction() {
+		Thing object = new Thing.Builder()
+				.setName("Main Page") // TODO: Define a title for the content shown.
+				// TODO: Make sure this auto-generated URL is correct.
+				.setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+				.build();
+		return new Action.Builder(Action.TYPE_VIEW)
+				.setObject(object)
+				.setActionStatus(Action.STATUS_TYPE_COMPLETED)
+				.build();
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		client.connect();
+		AppIndex.AppIndexApi.start(client, getIndexApiAction());
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		AppIndex.AppIndexApi.end(client, getIndexApiAction());
+		client.disconnect();
 	}
 }

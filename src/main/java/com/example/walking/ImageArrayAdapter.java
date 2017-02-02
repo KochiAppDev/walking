@@ -11,6 +11,7 @@ import android.widget.ImageView;
 
 import java.util.ArrayList;
 
+//ImageをListに入れるためのAdapterクラス
 public class ImageArrayAdapter extends ArrayAdapter<Integer>{
 	private int resourceId;
 	private ArrayList<Integer> items;

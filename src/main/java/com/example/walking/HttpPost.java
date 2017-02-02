@@ -18,7 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-
+//HttpPost用のクラス
 public final class HttpPost extends AsyncTask<String, Void, Void> {
 
 	public JSONObject jsonObject;
@@ -65,6 +65,7 @@ public final class HttpPost extends AsyncTask<String, Void, Void> {
 			in.close();
 
 			Object json = new JSONTokener(readSt).nextValue();
+			//取ってきたものが配列かの確認
 			if (json instanceof JSONObject) {
 				jsonObject = (JSONObject) json;
 			}else if (json instanceof JSONArray){
@@ -74,6 +75,7 @@ public final class HttpPost extends AsyncTask<String, Void, Void> {
 		} catch (IOException | JSONException e) {
 			e.printStackTrace();
 		}
+		//処理停止の解放
 		MainActivity.mDone.countDown();
 		return null;
 	}

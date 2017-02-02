@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
+//GPS用のクラス
 class MyGPS implements LocationListener {
 	LocationManager locationManager;
 	private MainActivity mainActivity;
@@ -43,6 +44,7 @@ class MyGPS implements LocationListener {
 		return longitude;
 	}
 
+	//パーミッションの設定
 	void setting(){
 		if(Build.VERSION.SDK_INT >= 23){
 			// 拒否していた場合
@@ -59,6 +61,7 @@ class MyGPS implements LocationListener {
 		}
 	}
 
+	//LocationManagerの設定
 	void startGPS() {
 		// ロケーションマネージャーのインスタンスを取得
 		locationManager = (LocationManager) mainActivity.getSystemService(Context.LOCATION_SERVICE);
@@ -79,6 +82,7 @@ class MyGPS implements LocationListener {
 		locationManager.requestLocationUpdates(provider, 0, 10, this);
 	}
 
+	//GPSの停止
 	void stopGPS(){
 		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			// TODO: Consider calling
@@ -93,6 +97,7 @@ class MyGPS implements LocationListener {
 		locationManager.removeUpdates(this);
 	}
 
+	//マーカーの表示
 	void setMarker(Location location, String title){
 		if(location != null){
 			LatLng sydney = new LatLng(location.getLatitude(), location.getLongitude());
@@ -101,6 +106,7 @@ class MyGPS implements LocationListener {
 		}
 	}
 
+	//位置情報の設定
 	private void LocationSet(){
 		String url = "https://kochi-app-dev-walking.herokuapp.com/position";
 		String req = "id=" + MainActivity.sp.getString("userID","-1") + "&lat=" + latitude + "&lon=" + longitude;
@@ -127,6 +133,7 @@ class MyGPS implements LocationListener {
 		}
 	}
 
+	//位置情報の取得
 	@Override
 	public void onLocationChanged(Location location) {
 		latitude = location.getLatitude();

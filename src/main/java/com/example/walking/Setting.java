@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+//設定用のクラス
 public class Setting implements View.OnClickListener {
 	private MainActivity context;
 	private Account account;
@@ -45,7 +46,7 @@ public class Setting implements View.OnClickListener {
 						rootArray[i] = context.root.get(i);
 					}
 					String url = "https://kochi-app-dev-walking.herokuapp.com/route";
-					String req = "id=" + MainActivity.sp.getString("userID","-1") + "&rt=" + rootArray;
+					String req = "id=" + MainActivity.sp.getString("userID","-1") + "&rt=" + Arrays.deepToString(rootArray);
 					HttpPost httpPost = new HttpPost();
 					httpPost.execute(url,req);
 					MainActivity.mDone = new CountDownLatch(1);

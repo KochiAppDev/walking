@@ -1,10 +1,6 @@
 package com.example.walking;
 
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -16,6 +12,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
+//名前の設定用のクラス
 public class NameSet implements View.OnClickListener {
 	public MainActivity context;
 	private Account account = null;
@@ -43,6 +40,7 @@ public class NameSet implements View.OnClickListener {
 		this.context.findViewById(R.id.name_decision).setOnClickListener(this);
 	}
 
+	//アイコンの表示
 	private void image(){
 		ArrayList<Integer> list = new ArrayList<>();
 		list.add(0);

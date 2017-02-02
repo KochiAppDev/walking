@@ -1,11 +1,10 @@
 package com.example.walking;
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Spinner;
 
+//設定用のクラス
 class Notice implements View.OnClickListener,CompoundButton.OnCheckedChangeListener {
 
 	private MainActivity context;
@@ -27,6 +26,7 @@ class Notice implements View.OnClickListener,CompoundButton.OnCheckedChangeListe
 		speed_spinner.setSelection(account.getSph());
 	}
 
+	//スピナーやスイッチの登録
 	private void set(){
 		this.context.setContentView(R.layout.notice);
 		this.context.findViewById(R.id.notice_decision).setOnClickListener(this);

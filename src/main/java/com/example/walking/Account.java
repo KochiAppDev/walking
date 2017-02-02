@@ -1,5 +1,6 @@
 package com.example.walking;
 
+//ユーザー情報の登録用のクラス
 public class Account {
 	private int ID;
 	private String usname;
