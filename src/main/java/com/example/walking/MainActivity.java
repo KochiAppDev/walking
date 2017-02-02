@@ -244,10 +244,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			}
 			int icon = json.getInt("icon");
 			int groupID = json.getInt("group");
-			//double[][] rt = json.getString("rt");
+			String str = json.getString("rt");
+			JSONArray jsonArray = new JSONArray(str);
+			int count = jsonArray.length();
+			double[][] rt = new double[count][2];
+			for(int i=0; i<count; i++){
+				String string = jsonArray.getString(i);
+				JSONArray Array = new JSONArray(string);
+				rt[i][0] = Array.getDouble(0);
+				rt[i][1] = Array.getDouble(1);
+			}
 			user = new Account(id, name, type, icon);
 			user.setGroupID(groupID);
-			//user.setRt(rt);
+			user.setRt(rt);
 
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -358,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 	@Override
 	public void onClick(View v) {
-		long[][] rt = user.getRt();
+		double[][] rt = user.getRt();
 		markers = new Marker[rt.length];
 		for(int i=0; i<rt.length; i++){
 			LatLng sydney = new LatLng(rt[i][0],rt[i][1]);

@@ -11,7 +11,7 @@ public class Account {
 	private int sph;
 	private long lat;
 	private long lon;
-	private long[][] rt;
+	private double[][] rt;
 	private String ts;
 
 	public Account(int ID, String usname, boolean type, int icon){
@@ -93,11 +93,11 @@ public class Account {
 		this.lon = lon;
 	}
 
-	public long[][] getRt() {
+	public double[][] getRt() {
 		return rt;
 	}
 
-	public void setRt(long[][] rt) {
+	public void setRt(double[][] rt) {
 		this.rt = rt;
 	}
 
