@@ -1,6 +1,5 @@
 package com.example.walking;
 
-import android.*;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -32,7 +31,6 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -87,9 +85,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	};
 	private BluetoothServerThread bst;
 
-	public Account user;
+	public static Account user;
 	private Marker[] markers;
-	private ArrayList<Account> group = new ArrayList<Account>();
+	public static ArrayList<Account> group = new ArrayList<Account>();
 	public static final Bitmap[] color = new Bitmap[8];
 	/**
 	 * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -165,23 +163,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				}
 			}
 
-			String url = "https://kochi-app-dev-walking.herokuapp.com/info";
-			String req = "id=" + sp.getString("userID", "-1");
-			HttpPost httpPost = new HttpPost();
-
-			httpPost.execute(url, req);
-			mDone = new CountDownLatch(1);
-			try {
-				mDone.await();
-			} catch (InterruptedException e) {
-			}
-			JSONObject json = httpPost.jsonObject;
-			setUser(json);
+			setUser();
 
 			ArrayList<Integer> iconlist = new ArrayList<>();
 			ListView list = (ListView) findViewById(R.id.buttonList);
 			try {
-				setGroup();
+				setGroup(user.getGroupID());
 				iconlist.add(user.getIcon());
 				for (Account account : group) {
 					iconlist.add(account.getIcon());
@@ -231,8 +218,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	}
 
 	//ユーザー情報の登録
-	private void setUser(JSONObject json) {
+	public static void setUser() {
 		try {
+			String url = "https://kochi-app-dev-walking.herokuapp.com/info";
+			String req = "id=" + sp.getString("userID", "-1");
+			HttpPost httpPost = new HttpPost();
+
+			httpPost.execute(url, req);
+			mDone = new CountDownLatch(1);
+			try {
+				mDone.await();
+			} catch (InterruptedException e) {
+			}
+			JSONObject json = httpPost.jsonObject;
 			int id = json.getInt("id");
 			if (id == -1) {
 				return;
@@ -264,14 +262,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	}
 
 	//グループの取得
-	private void setGroup() throws JSONException {
-		if (user.getID() == -1) {
-			return;
-		}
+	public static void setGroup(int groupID) throws JSONException {
 		String url;
 		String req;
 		url = "https://kochi-app-dev-walking.herokuapp.com/group";
-		req = "gp=" + user.getGroupID();
+		req = "gp=" + groupID;
 		HttpPost httpPost = new HttpPost();
 		httpPost.execute(url, req);
 		mDone = new CountDownLatch(1);
