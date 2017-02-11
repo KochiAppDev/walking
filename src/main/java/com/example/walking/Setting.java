@@ -22,10 +22,12 @@ public class Setting implements View.OnClickListener {
 	public void MysetContentView(Account account){
 		this.account = account;
 		this.context.setContentView(R.layout.setting);
-		this.context.findViewById(R.id.notice_button).setOnClickListener(this);
 		this.context.findViewById(R.id.InputMode_button).setOnClickListener(this);
 		rootbutton = (Button) this.context.findViewById(R.id.root_button);
-		rootbutton.setOnClickListener(this);
+		if(!this.account.isType()){
+			this.context.findViewById(R.id.notice_button).setOnClickListener(this);
+			rootbutton.setOnClickListener(this);
+		}
 		this.context.findViewById(R.id.name_button).setOnClickListener(this);
 	}
 

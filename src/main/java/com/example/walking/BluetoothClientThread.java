@@ -62,7 +62,7 @@ public class BluetoothClientThread extends Thread {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					String url = "https://kochi-app-dev-walking.herokuapp.com/add";
-					String req = "u1=" + context.user.getID() + "&u1=" + userID;
+					String req = "u1=" + MainActivity.user.getID() + "&u1=" + userID;
 					HttpPost httpPost = new HttpPost();
 					httpPost.execute(url,req);
 					MainActivity.mDone = new CountDownLatch(1);
@@ -71,7 +71,7 @@ public class BluetoothClientThread extends Thread {
 					} catch (InterruptedException e) {}
 					JSONObject json = httpPost.jsonObject;
 					try {
-						context.user.setGroupID(json.getInt("group_id"));
+						MainActivity.user.setGroupID(json.getInt("group_id"));
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}

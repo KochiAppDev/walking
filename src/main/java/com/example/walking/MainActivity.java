@@ -43,6 +43,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Timer;
 import java.util.concurrent.CountDownLatch;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, SensorEventListener, View.OnClickListener {
@@ -84,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		}
 	};
 	private BluetoothServerThread bst;
+
+	private MyTimerTask timerTask;
 
 	public static Account user;
 	private Marker[] markers;
@@ -187,6 +190,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 					getFragmentManager().beginTransaction().remove(mapFragment).commit();
 				}
 			});
+			Timer timer = new Timer();
+			timerTask = new MyTimerTask();
+			timer.schedule(timerTask, 0, 60000);
 			list.setAdapter(adapter);
 			myGPS.setting();
 			myGPS.startGPS();
@@ -326,9 +332,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 			@Override
 			public boolean onMarkerClick(Marker marker) {
-				int id = Integer.valueOf(marker.getId().split("m")[1]);
-				setting.MysetContentView(group.get(id));
-				getFragmentManager().beginTransaction().remove(mapFragment).commit();
+				if(user.isType()){
+					int id = Integer.valueOf(marker.getId().split("m")[1]);
+					if(id == 0){
+						setting.MysetContentView(user);
+					}else{
+						setting.MysetContentView(group.get(id + 1));
+					}
+
+					getFragmentManager().beginTransaction().remove(mapFragment).commit();
+				}
+
 				return true;
 			}
 		});
