@@ -31,6 +31,7 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,10 +53,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	public static CountDownLatch mDone;
 
 	public static Notice notice;
-	public GoogleMap mMap;
+	public static GoogleMap mMap;
 	private Setting setting;
 	public static NameSet nameSet;
-	private MyGPS myGPS;
+	public MyGPS myGPS;
 
 	private MapFragment mapFragment;
 
@@ -89,8 +90,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	private MyTimerTask timerTask;
 
 	public static Account user;
-	private Marker[] markers;
+	public Marker[] markers;
 	public static ArrayList<Account> group = new ArrayList<Account>();
+	public static ArrayList<Marker> groupMarker = new ArrayList<>();
 	public static final Bitmap[] color = new Bitmap[8];
 	/**
 	 * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -182,12 +184,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
 			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					LatLng sydney;
 					if (position == 0) {
-						setting.MysetContentView(user);
+						sydney = myGPS.marker.getPosition();
 					} else {
-						setting.MysetContentView(group.get(position - 1));
+						sydney = groupMarker.get(position - 1).getPosition();
 					}
-					getFragmentManager().beginTransaction().remove(mapFragment).commit();
+					mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 				}
 			});
 			Timer timer = new Timer();
@@ -308,27 +311,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				mBluetoothAdapter.cancelDiscovery();
 				unregisterReceiver(mReceiver);
 			}
+			bst.runStop();
 		}
-		bst.runStop();
 	}
 
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
 		mMap = googleMap;
-		if (myGPS.provider != null) {
-			if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-				// TODO: Consider calling
-				//    ActivityCompat#requestPermissions
-				// here to request the missing permissions, and then overriding
-				//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-				//                                          int[] grantResults)
-				// to handle the case where the user grants the permission. See the documentation
-				// for ActivityCompat#requestPermissions for more details.
-				return;
-			}
-			myGPS.setMarker(myGPS.locationManager.getLastKnownLocation(myGPS.provider), "name");
-			mMap.setMyLocationEnabled(true);
-		}
+
 		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 			@Override
 			public boolean onMarkerClick(Marker marker) {

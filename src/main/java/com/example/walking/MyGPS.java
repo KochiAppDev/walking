@@ -1,17 +1,22 @@
 package com.example.walking;
 
 
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationProvider;
+
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -20,15 +25,16 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
 //GPS用のクラス
-class MyGPS implements LocationListener {
-	LocationManager locationManager;
+class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+	private GoogleApiClient mGoogleApiClient;
+	private LocationRequest locationRequest;
+	private FusedLocationProviderApi fusedLocationProviderApi;
+
 	private MainActivity mainActivity;
-	private Marker marker;
-	String provider = null;
+	public Marker marker;
 	private double latitude = 0;
 	private double longitude = 0;
 
@@ -36,22 +42,14 @@ class MyGPS implements LocationListener {
 		mainActivity = context;
 	}
 
-	public double getLatitude() {
-		return latitude;
-	}
-
-	public double getLongitude() {
-		return longitude;
-	}
-
 	//パーミッションの設定
-	void setting(){
-		if(Build.VERSION.SDK_INT >= 23){
+	void setting() {
+		if (Build.VERSION.SDK_INT >= 23) {
 			// 拒否していた場合
-			if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+			if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 				int REQUEST_PERMISSION = 1000;
-				if (ActivityCompat.shouldShowRequestPermissionRationale(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION)){
-					ActivityCompat.requestPermissions(mainActivity,new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION);
+				if (ActivityCompat.shouldShowRequestPermissionRationale(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+					ActivityCompat.requestPermissions(mainActivity, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION);
 				} else {
 					Toast toast = Toast.makeText(mainActivity, "許可されないとアプリが実行できません", Toast.LENGTH_SHORT);
 					toast.show();
@@ -63,27 +61,29 @@ class MyGPS implements LocationListener {
 
 	//LocationManagerの設定
 	void startGPS() {
-		// ロケーションマネージャーのインスタンスを取得
-		locationManager = (LocationManager) mainActivity.getSystemService(Context.LOCATION_SERVICE);
-		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-			if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-				//GPSが利用可能
-				provider = LocationManager.GPS_PROVIDER;
-			}else if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
-				//ネットワークが利用可能
-				provider = LocationManager.NETWORK_PROVIDER;
-			}else{
-				//位置情報の利用不可能
-				return;
-			}
-		}else{
-			return;
-		}
-		locationManager.requestLocationUpdates(provider, 0, 10, this);
+		// LocationRequest を生成して精度、インターバルを設定
+		locationRequest = LocationRequest.create();
+		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		locationRequest.setInterval(1000);
+		locationRequest.setFastestInterval(10);
+
+		fusedLocationProviderApi = LocationServices.FusedLocationApi;
+
+		mGoogleApiClient = new GoogleApiClient.Builder(mainActivity)
+				.addApi(LocationServices.API)
+				.addConnectionCallbacks(this)
+				.addOnConnectionFailedListener(this)
+				.build();
+
+		mGoogleApiClient.connect();
 	}
 
 	//GPSの停止
-	void stopGPS(){
+	void stopGPS() {
+		mGoogleApiClient.disconnect();
+	}
+
+	public void rootSet() {
 		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			// TODO: Consider calling
 			//    ActivityCompat#requestPermissions
@@ -94,16 +94,9 @@ class MyGPS implements LocationListener {
 			// for ActivityCompat#requestPermissions for more details.
 			return;
 		}
-		locationManager.removeUpdates(this);
-	}
-
-	//マーカーの表示
-	void setMarker(Location location, String title){
-		if(location != null){
-			LatLng sydney = new LatLng(location.getLatitude(), location.getLongitude());
-			marker = mainActivity.mMap.addMarker(new MarkerOptions().position(sydney).title(title));
-			mainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-		}
+		Location lastLocation = fusedLocationProviderApi.getLastLocation(mGoogleApiClient);
+		double[] location = {lastLocation.getLatitude(),lastLocation.getLongitude()};
+		mainActivity.root.add(location);
 	}
 
 	//位置情報の設定
@@ -139,29 +132,37 @@ class MyGPS implements LocationListener {
 		latitude = location.getLatitude();
 		longitude = location.getLongitude();
 		LatLng sydney = new LatLng(latitude, longitude);
-		marker.setPosition(sydney);
-		mainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+		if(marker == null){
+			marker = MainActivity.mMap.addMarker(new MarkerOptions().position(sydney));
+		}else{
+			marker.setPosition(sydney);
+		}
+		MainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 		LocationSet();
 	}
 
 	@Override
-	public void onProviderDisabled(String provider) {
-		if (provider.equals(LocationManager.GPS_PROVIDER)) {
-			stopGPS();
-			startGPS();
+	public void onConnected(@Nullable Bundle bundle) {
+		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			// TODO: Consider calling
+			//    ActivityCompat#requestPermissions
+			// here to request the missing permissions, and then overriding
+			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+			//                                          int[] grantResults)
+			// to handle the case where the user grants the permission. See the documentation
+			// for ActivityCompat#requestPermissions for more details.
+			return;
 		}
+		fusedLocationProviderApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
 	}
 
 	@Override
-	public void onProviderEnabled(String provider) {
+	public void onConnectionSuspended(int i) {
 
 	}
 
 	@Override
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-		if (status == LocationProvider.AVAILABLE && provider.equals(LocationManager.GPS_PROVIDER)) {
-			stopGPS();
-			startGPS();
-		}
+	public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+		fusedLocationProviderApi.removeLocationUpdates(mGoogleApiClient, this);
 	}
 }

@@ -59,6 +59,7 @@ public class Setting implements View.OnClickListener {
 				}else {
 					context.rFlag = true;
 					context.root.clear();
+					context.myGPS.rootSet();
 					rootbutton.setText("ルートを設定中");
 				}
 				context.onResume();

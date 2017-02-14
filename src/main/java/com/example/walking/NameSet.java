@@ -37,6 +37,7 @@ public class NameSet implements View.OnClickListener {
 		name = (EditText) this.context.findViewById(R.id.name_editText);
 		icon = (GridView)this.context.findViewById(R.id.icon_List);
 		name.setText(account.getUsname());
+		icnum = account.getIcon();
 		this.context.findViewById(R.id.name_decision).setOnClickListener(this);
 	}
 
@@ -82,12 +83,7 @@ public class NameSet implements View.OnClickListener {
 				MainActivity.mDone.await();
 			} catch (InterruptedException e) {}
 			JSONObject json = httpPost.jsonObject;
-			try {
-				int result = json.getInt("result");
-				MainActivity.sp.edit().putBoolean("InitState", false).apply();
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
+			MainActivity.sp.edit().putBoolean("InitState", false).apply();
 			context.onResume();
 		}
 	}

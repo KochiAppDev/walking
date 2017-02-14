@@ -2,6 +2,11 @@ package com.example.walking;
 
 
 import android.os.Handler;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,6 +22,7 @@ public class MyTimerTask extends java.util.TimerTask {
 		mHandler.post(new Runnable() {
 			public void run() {
 				String req;
+				MainActivity.groupMarker.clear();
 				for(int i=0; i<MainActivity.group.size(); i++){
 					req = "id=" + MainActivity.group.get(i).getID();
 					HttpPost httpPost = new HttpPost();
@@ -27,19 +33,24 @@ public class MyTimerTask extends java.util.TimerTask {
 					} catch (InterruptedException e) {
 					}
 					JSONObject jsonObject = httpPost.jsonObject;
-					long lat = 0;
-					long lon = 0;
-					String ts = "";
-					try {
-						lat = jsonObject.getLong("lat");
-						lon = jsonObject.getLong("lon");
-						ts = jsonObject.getString("ts");
-					} catch (JSONException e) {
-						e.printStackTrace();
+					if(jsonObject != null){
+						long lat = 0;
+						long lon = 0;
+						String ts = "";
+						try {
+							lat = jsonObject.getLong("lat");
+							lon = jsonObject.getLong("lon");
+							ts = jsonObject.getString("ts");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						MainActivity.group.get(i).setLat(lat);
+						MainActivity.group.get(i).setLon(lon);
+						MainActivity.group.get(i).setTs(ts);
+						LatLng sydney = new LatLng(lat, lon);
+						Marker marker = MainActivity.mMap.addMarker(new MarkerOptions().position(sydney));
+						MainActivity.groupMarker.add(marker);
 					}
-					MainActivity.group.get(i).setLat(lat);
-					MainActivity.group.get(i).setLon(lon);
-					MainActivity.group.get(i).setTs(ts);
 				}
 			}
 		});
