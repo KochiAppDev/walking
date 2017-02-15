@@ -39,19 +39,15 @@ public class NameSet implements View.OnClickListener {
 		name.setText(account.getUsname());
 		icnum = account.getIcon();
 		this.context.findViewById(R.id.name_decision).setOnClickListener(this);
+		image();
 	}
 
 	//アイコンの表示
 	private void image(){
 		ArrayList<Integer> list = new ArrayList<>();
-		list.add(0);
-		list.add(1);
-		list.add(2);
-		list.add(3);
-		list.add(4);
-		list.add(5);
-		list.add(6);
-		list.add(7);
+		for(int i=0; i<8; i++){
+			list.add(i);
+		}
 		ImageArrayAdapter adapter = new ImageArrayAdapter(context, R.layout.listchild, list);
 		icon.setAdapter(adapter);
 		icon.setNumColumns(4);
@@ -74,7 +70,7 @@ public class NameSet implements View.OnClickListener {
 				req = "id=" + id + "&nm=" + name.getText() + "&tp="+ MainActivity.sp.getInt("tp", 0) +"&ic=" + icnum;
 			}else{
 				url = "https://kochi-app-dev-walking.herokuapp.com/config";
-				req = "id=" + id + "&nm=" + name.getText() +"&ic=" + icon.getNumColumns();
+				req = "id=" + id + "&nm=" + name.getText() +"&ic=" + icnum;
 			}
 			HttpPost httpPost = new HttpPost();
 			httpPost.execute(url,req);

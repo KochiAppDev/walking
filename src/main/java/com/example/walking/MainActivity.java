@@ -115,14 +115,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 		//画像を取得
 		Resources r = getResources();
-		color[0] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-		color[1] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-		color[2] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-		color[3] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-		color[4] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-		color[5] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-		color[6] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
-		color[7] = BitmapFactory.decodeResource(r, R.mipmap.ic_launcher);
+		color[0] = BitmapFactory.decodeResource(r, R.mipmap.blue);
+		color[1] = BitmapFactory.decodeResource(r, R.mipmap.green);
+		color[2] = BitmapFactory.decodeResource(r, R.mipmap.ltblue);
+		color[3] = BitmapFactory.decodeResource(r, R.mipmap.orange);
+		color[4] = BitmapFactory.decodeResource(r, R.mipmap.purple);
+		color[5] = BitmapFactory.decodeResource(r, R.mipmap.pink);
+		color[6] = BitmapFactory.decodeResource(r, R.mipmap.red);
+		color[7] = BitmapFactory.decodeResource(r, R.mipmap.yellow);
 
 		//各種マネージャーやサービスの登録
 		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -185,18 +185,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 					LatLng sydney;
+					Marker marker;
 					if (position == 0) {
-						sydney = myGPS.marker.getPosition();
+						marker = myGPS.marker;
 					} else {
-						sydney = groupMarker.get(position - 1).getPosition();
+						marker = groupMarker.get(position - 1);
 					}
-					mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+					if(marker != null){
+						sydney = marker.getPosition();
+						mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+					}
 				}
 			});
+
+			list.setAdapter(adapter);
+
 			Timer timer = new Timer();
 			timerTask = new MyTimerTask();
 			timer.schedule(timerTask, 0, 60000);
-			list.setAdapter(adapter);
+
 			myGPS.setting();
 			myGPS.startGPS();
 		}
@@ -252,6 +259,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			int icon = json.getInt("icon");
 			int groupID = json.getInt("group");
 			String str = json.getString("rt");
+
+			user = new Account(id, name, type, icon);
+			user.setGroupID(groupID);
+
 			JSONArray jsonArray = new JSONArray(str);
 			int count = jsonArray.length();
 			double[][] rt = new double[count][2];
@@ -261,8 +272,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				rt[i][0] = Array.getDouble(0);
 				rt[i][1] = Array.getDouble(1);
 			}
-			user = new Account(id, name, type, icon);
-			user.setGroupID(groupID);
 			user.setRt(rt);
 
 		} catch (JSONException e) {
