@@ -1,7 +1,9 @@
 package com.example.walking;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +18,12 @@ public class ImageArrayAdapter extends ArrayAdapter<Integer>{
 	private int resourceId;
 	private ArrayList<Integer> items;
 	private LayoutInflater inflater;
+	private Context context;
 
 	public ImageArrayAdapter(Context context, int resourceId, ArrayList<Integer> items) {
 		super(context, resourceId, items);
 
+		this.context = context;
 		this.resourceId = resourceId;
 		this.items = items;
 		this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -34,7 +38,8 @@ public class ImageArrayAdapter extends ArrayAdapter<Integer>{
 			imageView = (ImageView)this.inflater.inflate(this.resourceId, null);
 		}
 
-		Bitmap item = MainActivity.color[items.get(position)];
+		Resources r = context.getResources();
+		Bitmap item = BitmapFactory.decodeResource(r,MainActivity.color[items.get(position)]);
 
 		// アイコンをセット
 		imageView.setImageBitmap(item);

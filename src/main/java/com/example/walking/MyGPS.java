@@ -18,6 +18,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -76,6 +77,24 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 				.build();
 
 		mGoogleApiClient.connect();
+
+		if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			// TODO: Consider calling
+			//    ActivityCompat#requestPermissions
+			// here to request the missing permissions, and then overriding
+			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+			//                                          int[] grantResults)
+			// to handle the case where the user grants the permission. See the documentation
+			// for ActivityCompat#requestPermissions for more details.
+			return;
+		}
+		Location lastLocation = fusedLocationProviderApi.getLastLocation(mGoogleApiClient);
+		if(lastLocation != null){
+			LatLng sydney = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
+			marker = MainActivity.mMap.addMarker(new MarkerOptions()
+													.position(sydney)
+													.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[MainActivity.user.getIcon()])));
+		}
 	}
 
 	//GPSの停止
@@ -133,7 +152,9 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 		longitude = location.getLongitude();
 		LatLng sydney = new LatLng(latitude, longitude);
 		if(marker == null){
-			marker = MainActivity.mMap.addMarker(new MarkerOptions().position(sydney));
+			marker = MainActivity.mMap.addMarker(new MarkerOptions()
+					.position(sydney)
+					.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[MainActivity.user.getIcon()])));
 		}else{
 			marker.setPosition(sydney);
 		}

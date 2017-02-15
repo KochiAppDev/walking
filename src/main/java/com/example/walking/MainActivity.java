@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	public Marker[] markers;
 	public static ArrayList<Account> group = new ArrayList<Account>();
 	public static ArrayList<Marker> groupMarker = new ArrayList<>();
-	public static final Bitmap[] color = new Bitmap[8];
+	public static final int[] color = new int[8];
 	/**
 	 * ATTENTION: This was auto-generated to implement the App Indexing API.
 	 * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -114,15 +114,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		myGPS = new MyGPS(this);
 
 		//画像を取得
-		Resources r = getResources();
-		color[0] = BitmapFactory.decodeResource(r, R.mipmap.blue);
-		color[1] = BitmapFactory.decodeResource(r, R.mipmap.green);
-		color[2] = BitmapFactory.decodeResource(r, R.mipmap.ltblue);
-		color[3] = BitmapFactory.decodeResource(r, R.mipmap.orange);
-		color[4] = BitmapFactory.decodeResource(r, R.mipmap.purple);
-		color[5] = BitmapFactory.decodeResource(r, R.mipmap.pink);
-		color[6] = BitmapFactory.decodeResource(r, R.mipmap.red);
-		color[7] = BitmapFactory.decodeResource(r, R.mipmap.yellow);
+		color[0] = R.mipmap.blue;
+		color[1] = R.mipmap.green;
+		color[2] = R.mipmap.ltblue;
+		color[3] = R.mipmap.orange;
+		color[4] = R.mipmap.purple;
+		color[5] = R.mipmap.pink;
+		color[6] = R.mipmap.red;
+		color[7] = R.mipmap.yellow;
 
 		//各種マネージャーやサービスの登録
 		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -338,7 +337,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 					}else{
 						setting.MysetContentView(group.get(id + 1));
 					}
-
+					myGPS.stopGPS();
+					myGPS.marker = null;
 					getFragmentManager().beginTransaction().remove(mapFragment).commit();
 				}
 

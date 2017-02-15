@@ -3,6 +3,7 @@ package com.example.walking;
 
 import android.os.Handler;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -23,8 +24,8 @@ public class MyTimerTask extends java.util.TimerTask {
 			public void run() {
 				String req;
 				MainActivity.groupMarker.clear();
-				for(int i=0; i<MainActivity.group.size(); i++){
-					req = "id=" + MainActivity.group.get(i).getID();
+				for(Account account : MainActivity.group){
+					req = "id=" + account.getID();
 					HttpPost httpPost = new HttpPost();
 					httpPost.execute(url, req);
 					MainActivity.mDone = new CountDownLatch(1);
@@ -44,11 +45,13 @@ public class MyTimerTask extends java.util.TimerTask {
 						} catch (JSONException e) {
 							e.printStackTrace();
 						}
-						MainActivity.group.get(i).setLat(lat);
-						MainActivity.group.get(i).setLon(lon);
-						MainActivity.group.get(i).setTs(ts);
+						account.setLat(lat);
+						account.setLon(lon);
+						account.setTs(ts);
 						LatLng sydney = new LatLng(lat, lon);
-						Marker marker = MainActivity.mMap.addMarker(new MarkerOptions().position(sydney));
+						Marker marker = MainActivity.mMap.addMarker(new MarkerOptions()
+								.position(sydney)
+								.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[account.getIcon()])));
 						MainActivity.groupMarker.add(marker);
 					}
 				}
