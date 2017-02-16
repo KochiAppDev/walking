@@ -150,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		boolean state = sp.getBoolean("InitState", true);
 		if (!state) {
 			setContentView(R.layout.activity_map);
-			findViewById(R.id.root).setOnClickListener(this);
 			// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 			mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
 			mapFragment.getMapAsync(this);
@@ -205,6 +204,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 			myGPS.setting();
 			myGPS.startGPS();
+
+			if(!user.isType()){
+				findViewById(R.id.root).setOnClickListener(this);
+			}
 		}
 	}
 
@@ -376,10 +379,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	@Override
 	public void onClick(View v) {
 		double[][] rt = user.getRt();
-		markers = new Marker[rt.length];
-		for(int i=0; i<rt.length; i++){
-			LatLng sydney = new LatLng(rt[i][0],rt[i][1]);
-			markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+		if(rt != null){
+			markers = new Marker[rt.length];
+			for(int i=0; i<rt.length; i++){
+				LatLng sydney = new LatLng(rt[i][0],rt[i][1]);
+				markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+			}
 		}
 	}
 
