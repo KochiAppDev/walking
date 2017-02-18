@@ -65,8 +65,8 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 		// LocationRequest を生成して精度、インターバルを設定
 		locationRequest = LocationRequest.create();
 		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-		locationRequest.setInterval(1000);
-		locationRequest.setFastestInterval(10);
+		locationRequest.setInterval(8000);
+		locationRequest.setFastestInterval(80000);
 
 		fusedLocationProviderApi = LocationServices.FusedLocationApi;
 
