@@ -66,7 +66,7 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 		locationRequest = LocationRequest.create();
 		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 		locationRequest.setInterval(8000);
-		locationRequest.setFastestInterval(80000);
+		locationRequest.setFastestInterval(8000);
 
 		fusedLocationProviderApi = LocationServices.FusedLocationApi;
 
