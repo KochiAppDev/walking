@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -18,8 +19,9 @@ public class BluetoothClientThread extends Thread {
 	private final BluetoothSocket clientSocket;
 	private final BluetoothDevice mDevice;
 	public static final UUID TECHBOOSTER_BTSAMPLE_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-	static BluetoothAdapter myClientAdapter;
+	private BluetoothAdapter myClientAdapter;
 	private MainActivity context;
+	private Boolean flag = true;
 
 	public BluetoothClientThread(MainActivity context, BluetoothDevice device, BluetoothAdapter btAdapter){
 		this.context = context;
@@ -40,58 +42,42 @@ public class BluetoothClientThread extends Thread {
 			myClientAdapter.cancelDiscovery();
 		}
 
-		try{
-			clientSocket.connect();
-			InputStream inputStream = clientSocket.getInputStream();
-			final int userID = inputStream.read();
-			inputStream.close();
-			clientSocket.close();
-			String url = "https://kochi-app-dev-walking.herokuapp.com/info";
-			String req = "id=" + userID;
-			HttpPost httpPost = new HttpPost();
-			httpPost.execute(url,req);
-			MainActivity.mDone = new CountDownLatch(1);
-			try {
-				MainActivity.mDone.await();
-			} catch (InterruptedException e) {}
-			JSONObject json = httpPost.jsonObject;
-			AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
-			alertDialog.setTitle("グループの追加");
-			alertDialog.setMessage(json.getString("name")+"をグループに追加しますか？");
-			alertDialog.setPositiveButton("追加する", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					String url = "https://kochi-app-dev-walking.herokuapp.com/add";
-					String req = "u1=" + MainActivity.user.getID() + "&u1=" + userID;
-					HttpPost httpPost = new HttpPost();
-					httpPost.execute(url,req);
-					MainActivity.mDone = new CountDownLatch(1);
-					try {
-						MainActivity.mDone.await();
-					} catch (InterruptedException e) {}
-					JSONObject json = httpPost.jsonObject;
-					try {
-						MainActivity.user.setGroupID(json.getInt("group_id"));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-			});
-			alertDialog.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-
-				}
-			});
-			alertDialog.create().show();
-		}catch(IOException e){
-			try {
-				clientSocket.close();
-			} catch (IOException closeException) {
-				e.printStackTrace();
+		String[] str = myClientAdapter.getName().split("_",0);
+		for(Account account : MainActivity.group){
+			String ID = String.valueOf(account.getID());
+			if(ID.equals(str[1])) {
+				return;
 			}
-		} catch (JSONException e) {
-			e.printStackTrace();
 		}
+
+		AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
+		alertDialog.setTitle("グループに参加");
+		alertDialog.setMessage(str[2]+"の仲間に加わりますか？");
+		alertDialog.setPositiveButton("加わる", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				try {
+					clientSocket.connect();
+					byte[] buf = String.valueOf(MainActivity.user.getID() + "_" + MainActivity.user.getUsname()).getBytes("UTF-8");
+					OutputStream outputStream = clientSocket.getOutputStream();
+					outputStream.write(buf);
+					outputStream.close();
+					clientSocket.close();
+				} catch (IOException e) {
+					try {
+						clientSocket.close();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					e.printStackTrace();
+				}
+			}
+		});
+		alertDialog.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+			}
+		});
+		alertDialog.create().show();
 	}
 }

@@ -79,8 +79,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
 				// 見つけたデバイス情報の取得
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
-				bct.start();
+				if(device.getName().startsWith("walking")){
+					BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
+					bct.start();
+				}
 				startDetect();
 			}
 		}
@@ -123,15 +125,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		color[6] = R.mipmap.red;
 		color[7] = R.mipmap.yellow;
 
-		//各種マネージャーやサービスの登録
-		manager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
 		//Bluetoothの登録
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mBluetoothAdapter == null) {
 			Toast toast = Toast.makeText(this, "この端末はグループの追加ができません", Toast.LENGTH_SHORT);
 			toast.show();
+		}else{
+			//各種マネージャーやサービスの登録
+			manager = (SensorManager) getSystemService(SENSOR_SERVICE);
+			sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+			mBluetoothAdapter.setName("walking_" + user.getID() + "_" + user.getUsname());
 		}
 
 		//初回起動かの判定
