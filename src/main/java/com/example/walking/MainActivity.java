@@ -1,6 +1,5 @@
 package com.example.walking;
 
-import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -9,10 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -20,7 +15,6 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -83,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 					BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
 					bct.start();
 				}
+			}
+			if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
 				startDetect();
 			}
 		}
@@ -220,11 +216,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	protected void onActivityResult(int requestCode, int ResultCode, Intent date) {
 		switch (requestCode) {
 			case 0:
-				if (ResultCode == Activity.RESULT_OK) {
-					startDetect();
-					bst = new BluetoothServerThread(this, mBluetoothAdapter);
-					bst.start();
-				} else {
+				if (ResultCode != Activity.RESULT_OK) {
 					Toast toast = Toast.makeText(this, "オンにしないとグループの追加はできません", Toast.LENGTH_SHORT);
 					toast.show();
 				}
@@ -234,9 +226,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	}
 
 	private void startDetect() {
-		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+		IntentFilter filter = new IntentFilter();
 		registerReceiver(mReceiver, filter);
-
+		//接続可能なデバイスを検出
+		if(mBluetoothAdapter.isDiscovering()){
+			//検索中の場合は検出をキャンセルする
+			mBluetoothAdapter.cancelDiscovery();
+		}
+		//デバイスを検索する
 		mBluetoothAdapter.startDiscovery();
 	}
 
