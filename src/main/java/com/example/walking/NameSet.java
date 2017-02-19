@@ -66,8 +66,8 @@ public class NameSet implements View.OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if(name.getText().length() != 0 && icnum != -1){
-			String id = MainActivity.sp.getString("userID","-1");
-			if(id.equals("-1")){return;}
+			int id = account.getID();
+			if(id < 0){return;}
 			String url;
 			String req;
 			if(MainActivity.sp.getBoolean("InitState", true)) {
@@ -85,8 +85,6 @@ public class NameSet implements View.OnClickListener {
 			} catch (InterruptedException e) {}
 			JSONObject json = httpPost.jsonObject;
 			MainActivity.sp.edit().putBoolean("InitState", false).apply();
-			context.myGPS.marker.remove();
-			context.myGPS.marker = null;
 			context.onResume();
 		}
 	}
