@@ -22,7 +22,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class BluetoothServerThread extends Thread {
 	private final BluetoothServerSocket servSock;
-	public static final UUID TECHBOOSTER_BTSAMPLE_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+	public static final UUID mUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	static BluetoothAdapter myServerAdapter;
 	private MainActivity context;
 	private boolean flag = true;
@@ -33,7 +33,7 @@ public class BluetoothServerThread extends Thread {
 		this.context = context;
 
 		try{
-			tmpServSock = myServerAdapter.listenUsingRfcommWithServiceRecord("walking", TECHBOOSTER_BTSAMPLE_UUID);
+			tmpServSock = myServerAdapter.listenUsingRfcommWithServiceRecord("walking", mUUID);
 		}catch(IOException e){
 			e.printStackTrace();
 		}
@@ -63,35 +63,30 @@ public class BluetoothServerThread extends Thread {
 
 					String userIDName = sb.toString();
 					final String[] user = userIDName.split("_",0);
-					AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
-					alertDialog.setTitle("申請がきています");
-					alertDialog.setMessage(user[1]+"を仲間に加わえますか？");
-					alertDialog.setPositiveButton("加える", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							String url = "https://kochi-app-dev-walking.herokuapp.com/add";
-							String req = "u1=" + MainActivity.user.getID() + "&u1=" + user[0];
-							HttpPost httpPost = new HttpPost();
-							httpPost.execute(url,req);
-							MainActivity.mDone = new CountDownLatch(1);
-							try {
-								MainActivity.mDone.await();
-							} catch (InterruptedException e) {}
-							JSONObject json = httpPost.jsonObject;
-							try {
-								MainActivity.user.setGroupID(json.getInt("group_id"));
-							} catch (JSONException e) {
-								e.printStackTrace();
+					new AlertDialog.Builder(context)
+						.setTitle("申請がきています")
+						.setMessage(user[1]+"を仲間に加わえますか？")
+						.setPositiveButton("加える", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								String url = "https://kochi-app-dev-walking.herokuapp.com/add";
+								String req = "u1=" + MainActivity.user.getID() + "&u1=" + user[0];
+								HttpPost httpPost = new HttpPost();
+								httpPost.execute(url,req);
+								MainActivity.mDone = new CountDownLatch(1);
+								try {
+									MainActivity.mDone.await();
+								} catch (InterruptedException e) {}
+								JSONObject json = httpPost.jsonObject;
+								try {
+									MainActivity.user.setGroupID(json.getInt("group_id"));
+								} catch (JSONException e) {
+									e.printStackTrace();
+								}
 							}
-						}
-					});
-					alertDialog.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-
-						}
-					});
-					alertDialog.create().show();
+						})
+						.setNegativeButton("キャンセル", null)
+						.show();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

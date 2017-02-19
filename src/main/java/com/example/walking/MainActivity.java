@@ -77,10 +77,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 					if (device.getName().startsWith("walking")) {
 						BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
 						bct.start();
+						unregisterReceiver(mReceiver);
 					}
 				}catch (NullPointerException e){}
 			}
 			if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+				unregisterReceiver(mReceiver);
 				startDetect();
 			}
 		}
@@ -125,18 +127,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		color[6] = R.mipmap.red;
 		color[7] = R.mipmap.yellow;
 
-		//Bluetoothの登録
-		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		if (mBluetoothAdapter == null) {
-			Toast toast = Toast.makeText(this, "この端末はグループの追加ができません", Toast.LENGTH_SHORT);
-			toast.show();
-		}else{
-			//各種マネージャーやサービスの登録
-			manager = (SensorManager) getSystemService(SENSOR_SERVICE);
-			sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-			manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
-		}
-
 		//初回起動かの判定
 		if (state) {
 			explanation.MysetContentView();
@@ -158,7 +148,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 			setUser();
 
+			//Bluetoothの登録
+			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 			if (mBluetoothAdapter != null) {
+				//各種マネージャーやサービスの登録
+				manager = (SensorManager) getSystemService(SENSOR_SERVICE);
+				sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+				manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
 				if (!mBluetoothAdapter.isEnabled()) {
 					//OFFだった場合、ONにすることを促すダイアログを表示する画面に遷移
 					Intent btOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -170,6 +166,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				}
 				BluetoothAdapterName = mBluetoothAdapter.getName();
 				mBluetoothAdapter.setName("walking_" + user.getID() + "_" + user.getUsname());
+			}else{
+				Toast toast = Toast.makeText(this, "この端末はグループの追加ができません", Toast.LENGTH_SHORT);
+				toast.show();
 			}
 
 			ArrayList<Integer> iconlist = new ArrayList<>();
@@ -338,6 +337,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			manager.unregisterListener(this);
 			mBluetoothAdapter.setName(BluetoothAdapterName);
 		}
+		if(myGPS.marker != null){
+			myGPS.marker.remove();
+			myGPS.marker = null;
+		}
 	}
 
 	@Override
@@ -377,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			float speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000;
 			if (speed > SHAKE_THRESHOLD) {
 				Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-				startActivityForResult(intent, 1);
+				startActivity(intent);
 			}
 			last_x = x;
 			last_y = y;
