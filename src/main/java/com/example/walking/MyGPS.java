@@ -99,7 +99,9 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 
 	//GPSの停止
 	void stopGPS() {
-		mGoogleApiClient.disconnect();
+		if(mGoogleApiClient != null){
+			mGoogleApiClient.disconnect();
+		}
 	}
 
 	public void rootSet() {

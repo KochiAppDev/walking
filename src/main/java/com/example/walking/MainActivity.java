@@ -134,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			//各種マネージャーやサービスの登録
 			manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 			sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+			manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
 			mBluetoothAdapter.setName("walking_" + user.getID() + "_" + user.getUsname());
 		}
 
@@ -149,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	@Override
 	protected void onResume() {
 		super.onResume();
-		manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
 		boolean state = sp.getBoolean("InitState", true);
 		if (!state) {
 			setContentView(R.layout.activity_map);
@@ -186,11 +186,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 					LatLng sydney;
-					Marker marker;
+					Marker marker = null;
 					if (position == 0) {
 						marker = myGPS.marker;
 					} else {
-						marker = groupMarker.get(position - 1);
+						try{
+							marker = groupMarker.get(position - 1);
+						}catch (IndexOutOfBoundsException e){}
 					}
 					if(marker != null){
 						sydney = marker.getPosition();
@@ -318,14 +320,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	protected void onPause() {
 		super.onPause();
 		myGPS.stopGPS();
-		getFragmentManager().beginTransaction().remove(mapFragment).commit();
-		manager.unregisterListener(this);
+		if(mapFragment != null){
+			getFragmentManager().beginTransaction().remove(mapFragment).commit();
+		}
 		if (mBluetoothAdapter != null) {
 			if (mBluetoothAdapter.isDiscovering()) {
 				mBluetoothAdapter.cancelDiscovery();
 				unregisterReceiver(mReceiver);
 			}
 			bst.runStop();
+			manager.unregisterListener(this);
 		}
 	}
 

@@ -54,7 +54,9 @@ public class NameSet implements View.OnClickListener {
 		icon.setNumColumns(4);
 		icon.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-				icon.getChildAt(icnum).setBackgroundColor(Color.WHITE);
+				if(icnum > -1){
+					icon.getChildAt(icnum).setBackgroundColor(Color.WHITE);
+				}
 				icnum = position;
 				icon.getChildAt(icnum).setBackgroundColor(Color.RED);
 			}
