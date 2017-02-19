@@ -98,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	 */
 	private GoogleApiClient client;
 
+	private String BluetoothAdapterName ;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -164,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 					bst = new BluetoothServerThread(this, mBluetoothAdapter);
 					bst.start();
 				}
+				BluetoothAdapterName = mBluetoothAdapter.getName();
 				mBluetoothAdapter.setName("walking_" + user.getID() + "_" + user.getUsname());
 			}
 
@@ -331,6 +334,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				bst.runStop();
 			}
 			manager.unregisterListener(this);
+			mBluetoothAdapter.setName(BluetoothAdapterName);
 		}
 	}
 
