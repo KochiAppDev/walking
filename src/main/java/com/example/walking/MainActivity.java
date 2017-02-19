@@ -73,10 +73,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
 				// 見つけたデバイス情報の取得
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				if(device.getName().startsWith("walking")){
-					BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
-					bct.start();
-				}
+				try {
+					if (device.getName().startsWith("walking")) {
+						BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
+						bct.start();
+					}
+				}catch (NullPointerException e){}
 			}
 			if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
 				startDetect();
@@ -346,11 +348,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			@Override
 			public boolean onMarkerClick(Marker marker) {
 				if(user.isType()){
-					int id = Integer.valueOf(marker.getId().split("m")[1]);
+					int id = (int) marker.getTag();
 					if(id == 0){
 						setting.MysetContentView(user);
 					}else{
-						setting.MysetContentView(group.get(id + 1));
+						setting.MysetContentView(group.get(id - 1));
 					}
 					myGPS.stopGPS();
 					myGPS.marker = null;

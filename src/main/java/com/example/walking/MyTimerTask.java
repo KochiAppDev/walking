@@ -23,6 +23,10 @@ public class MyTimerTask extends java.util.TimerTask {
 		mHandler.post(new Runnable() {
 			public void run() {
 				String req;
+				int index = 1;
+				for(Marker marker : MainActivity.groupMarker){
+					marker.remove();
+				}
 				MainActivity.groupMarker.clear();
 				for(Account account : MainActivity.group){
 					req = "id=" + account.getID();
@@ -52,7 +56,9 @@ public class MyTimerTask extends java.util.TimerTask {
 						Marker marker = MainActivity.mMap.addMarker(new MarkerOptions()
 								.position(sydney)
 								.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[account.getIcon()])));
+						marker.setTag(index);
 						MainActivity.groupMarker.add(marker);
+						index++;
 					}
 				}
 			}

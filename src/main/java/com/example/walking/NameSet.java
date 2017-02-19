@@ -85,6 +85,8 @@ public class NameSet implements View.OnClickListener {
 			} catch (InterruptedException e) {}
 			JSONObject json = httpPost.jsonObject;
 			MainActivity.sp.edit().putBoolean("InitState", false).apply();
+			context.myGPS.marker.remove();
+			context.myGPS.marker = null;
 			context.onResume();
 		}
 	}

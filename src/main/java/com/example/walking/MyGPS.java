@@ -91,9 +91,15 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 		Location lastLocation = fusedLocationProviderApi.getLastLocation(mGoogleApiClient);
 		if(lastLocation != null){
 			LatLng sydney = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
-			marker = MainActivity.mMap.addMarker(new MarkerOptions()
-													.position(sydney)
-													.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[MainActivity.user.getIcon()])));
+			if(marker != null){
+				marker.setPosition(sydney);
+			}else {
+				marker = MainActivity.mMap.addMarker(new MarkerOptions()
+						.position(sydney)
+						.title(MainActivity.user.getUsname())
+						.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[MainActivity.user.getIcon()])));
+				marker.setTag(0);
+			}
 		}
 	}
 
@@ -157,6 +163,7 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 			marker = MainActivity.mMap.addMarker(new MarkerOptions()
 					.position(sydney)
 					.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[MainActivity.user.getIcon()])));
+			marker.setTag(0);
 		}else{
 			marker.setPosition(sydney);
 		}
