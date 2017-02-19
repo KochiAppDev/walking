@@ -129,7 +129,7 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 	//位置情報の設定
 	private void LocationSet(){
 		String url = "https://kochi-app-dev-walking.herokuapp.com/location";
-		String req = "id=" + MainActivity.sp.getString("userID","-1") + "&lat=" + latitude + "&lon=" + longitude;
+		String req = "id=" + MainActivity.user.getID() + "&lat=" + latitude + "&lon=" + longitude;
 		HttpPost httpPost = new HttpPost();
 		httpPost.execute(url,req);
 		MainActivity.mDone = new CountDownLatch(1);

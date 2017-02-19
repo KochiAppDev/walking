@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 
 import org.json.JSONException;
@@ -26,6 +27,7 @@ public class BluetoothServerThread extends Thread {
 	static BluetoothAdapter myServerAdapter;
 	private MainActivity context;
 	private boolean flag = true;
+	private final Handler handler = new Handler();
 
 	public BluetoothServerThread(MainActivity context, BluetoothAdapter btAdapter){
 		BluetoothServerSocket tmpServSock = null;
@@ -42,6 +44,8 @@ public class BluetoothServerThread extends Thread {
 
 	public void run(){
 		BluetoothSocket receivedSocket = null;
+		int size;
+		byte[] w=new byte[1024];
 		while(flag) {
 			try {
 				receivedSocket = servSock.accept();
@@ -51,45 +55,52 @@ public class BluetoothServerThread extends Thread {
 			if(receivedSocket != null){
 				try {
 					InputStream inputStream = receivedSocket.getInputStream();
-					BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-					StringBuilder sb = new StringBuilder();
-					String line;
-					while ((line = br.readLine()) != null) {
-						sb.append(line);
-					}
-					br.close();
+					size = inputStream.read(w);
+					if (size <= 0) break;
 					inputStream.close();
-					servSock.close();
 
-					String userIDName = sb.toString();
+					String userIDName = new String(w,0,size,"UTF-8");
 					final String[] user = userIDName.split("_",0);
-					new AlertDialog.Builder(context)
-						.setTitle("申請がきています")
-						.setMessage(user[1]+"を仲間に加わえますか？")
-						.setPositiveButton("加える", new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-								String url = "https://kochi-app-dev-walking.herokuapp.com/add";
-								String req = "u1=" + MainActivity.user.getID() + "&u1=" + user[0];
-								HttpPost httpPost = new HttpPost();
-								httpPost.execute(url,req);
-								MainActivity.mDone = new CountDownLatch(1);
-								try {
-									MainActivity.mDone.await();
-								} catch (InterruptedException e) {}
-								JSONObject json = httpPost.jsonObject;
-								try {
-									MainActivity.user.setGroupID(json.getInt("group_id"));
-								} catch (JSONException e) {
-									e.printStackTrace();
-								}
-							}
-						})
-						.setNegativeButton("キャンセル", null)
-						.show();
+					handler.post(new Runnable() {
+						public void run() {
+							new AlertDialog.Builder(context)
+									.setTitle("申請がきています")
+									.setMessage(user[1] + "を仲間に加わえますか？")
+									.setPositiveButton("加える", new DialogInterface.OnClickListener() {
+										@Override
+										public void onClick(DialogInterface dialog, int which) {
+											String url = "https://kochi-app-dev-walking.herokuapp.com/add";
+											String req = "u1=" + MainActivity.user.getID() + "&u2=" + user[0];
+											HttpPost httpPost = new HttpPost();
+											httpPost.execute(url, req);
+											MainActivity.mDone = new CountDownLatch(1);
+											try {
+												MainActivity.mDone.await();
+											} catch (InterruptedException e) {
+											}
+											JSONObject json = httpPost.jsonObject;
+											try {
+												int groupID = json.getInt("group_id");
+												if(groupID > -1){
+													MainActivity.user.setGroupID(groupID);
+												}
+											} catch (JSONException e) {
+												e.printStackTrace();
+											}
+										}
+									})
+									.setNegativeButton("キャンセル", null)
+									.show();
+						}
+					});
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			}
+			try {
+				servSock.close();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}

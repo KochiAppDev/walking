@@ -46,7 +46,7 @@ public class BluetoothClientThread extends Thread {
 					myClientAdapter.cancelDiscovery();
 				}
 
-				String[] str = myClientAdapter.getName().split("_", 0);
+				String[] str = mDevice.getName().split("_", 0);
 				for (Account account : MainActivity.group) {
 					String ID = String.valueOf(account.getID());
 					if (ID.equals(str[1])) {
@@ -68,6 +68,7 @@ public class BluetoothClientThread extends Thread {
 								byte[] buf = String.valueOf(MainActivity.user.getID() + "_" + MainActivity.user.getUsname()).getBytes("UTF-8");
 								OutputStream outputStream = clientSocket.getOutputStream();
 								outputStream.write(buf);
+								outputStream.flush();
 								outputStream.close();
 								clientSocket.close();
 							} catch (IOException e) {
