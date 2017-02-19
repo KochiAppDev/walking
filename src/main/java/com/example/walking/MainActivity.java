@@ -135,7 +135,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 			sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 			manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
-			mBluetoothAdapter.setName("walking_" + user.getID() + "_" + user.getUsname());
 		}
 
 		//初回起動かの判定
@@ -157,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
 			mapFragment.getMapAsync(this);
 
+			setUser();
+
 			if (mBluetoothAdapter != null) {
 				if (!mBluetoothAdapter.isEnabled()) {
 					//OFFだった場合、ONにすることを促すダイアログを表示する画面に遷移
@@ -167,9 +168,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 					bst = new BluetoothServerThread(this, mBluetoothAdapter);
 					bst.start();
 				}
+				mBluetoothAdapter.setName("walking_" + user.getID() + "_" + user.getUsname());
 			}
-
-			setUser();
 
 			ArrayList<Integer> iconlist = new ArrayList<>();
 			ListView list = (ListView) findViewById(R.id.buttonList);
@@ -328,7 +328,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				mBluetoothAdapter.cancelDiscovery();
 				unregisterReceiver(mReceiver);
 			}
-			bst.runStop();
+			if(mBluetoothAdapter.isEnabled()){
+				bst.runStop();
+			}
 			manager.unregisterListener(this);
 		}
 	}
