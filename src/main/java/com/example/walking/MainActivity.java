@@ -227,6 +227,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 	private void startDetect() {
 		IntentFilter filter = new IntentFilter();
+		filter.addAction(BluetoothDevice.ACTION_FOUND);
+		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 		registerReceiver(mReceiver, filter);
 		//接続可能なデバイスを検出
 		if(mBluetoothAdapter.isDiscovering()){
