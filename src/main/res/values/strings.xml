@@ -19,4 +19,5 @@
     <string name="setting_InputMode">メッセージの入力方式を変更できます。</string>
     <string name="setting_root">ルートの設定ができます。</string>
     <string name="setting_name">名前の変更ができます。</string>
+    <string name="setting_remove">仲間から離れることができます。</string>
 </resources>

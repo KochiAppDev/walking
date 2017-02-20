@@ -42,6 +42,7 @@
             </intent-filter>
         </service>
         <!-- [END firebase_service] -->
+
         <!-- [START firebase_iid_service] -->
         <service android:name=".MyFirebaseInstanceIDService">
             <intent-filter>

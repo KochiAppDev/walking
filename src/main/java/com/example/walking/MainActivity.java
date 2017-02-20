@@ -291,6 +291,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 	//グループの取得
 	public static void setGroup(int groupID) throws JSONException {
+		group.clear();
+		if(groupID < 0){
+			return;
+		}
 		String url;
 		String req;
 		url = "https://kochi-app-dev-walking.herokuapp.com/group";
@@ -303,7 +307,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		} catch (InterruptedException e) {
 		}
 		JSONArray jsonArray = httpPost.jsonArray;
-		group.clear();
 		for (int i = 0; i < jsonArray.length(); i++) {
 			JSONObject jsonObject = jsonArray.getJSONObject(i);
 			int id = jsonObject.getInt("id");

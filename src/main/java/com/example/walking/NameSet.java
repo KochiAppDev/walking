@@ -66,7 +66,7 @@ public class NameSet implements View.OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if(name.getText().length() != 0 && icnum != -1){
-			int id = account.getID();
+			int id = Integer.valueOf(MainActivity.sp.getString("userID","-1"));
 			if(id < 0){return;}
 			String url;
 			String req;
