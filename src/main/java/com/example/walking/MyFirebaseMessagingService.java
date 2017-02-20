@@ -17,20 +17,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 		// Also if you intend on generating your own notifications as a result of a received FCM
 		// message, here is where that should be initiated. See sendNotification method below.
 		String order = remoteMessage.getData().get("order");
+		if(order == null){
+			return;
+		}
 		switch (order){
 			case "config":
 			case "route":
 			case "setting":
-				MainActivity.setUser();
+				MainActivity.mainActivity.setUser();
 				break;
 			case "group":
-				try {
-					int groupID = Integer.valueOf(remoteMessage.getData().get("group"));
-					MainActivity.user.setGroupID(groupID);
-					MainActivity.setGroup(groupID);
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
+				int groupID = Integer.valueOf(remoteMessage.getData().get("group"));
+				MainActivity.user.setGroupID(groupID);
+				MainActivity.mainActivity.setGroup(groupID);
 				break;
 			case "message":
 				break;

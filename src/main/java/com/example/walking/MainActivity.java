@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	public static SharedPreferences sp;
 	public static CountDownLatch mDone;
 
+	public static MainActivity mainActivity;
 	public static Notice notice;
 	public static GoogleMap mMap;
 	private Setting setting;
@@ -111,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		boolean state = sp.getBoolean("InitState", true);
 
 		//各種クラスの生成
+		mainActivity = this;
 		setting = new Setting(this);
 		notice = new Notice(this);
 		Explanation explanation = new Explanation(this);
@@ -171,37 +173,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				toast.show();
 			}
 
-			ArrayList<Integer> iconlist = new ArrayList<>();
-			ListView list = (ListView) findViewById(R.id.buttonList);
-			try {
-				setGroup(user.getGroupID());
-				iconlist.add(user.getIcon());
-				for (Account account : group) {
-					iconlist.add(account.getIcon());
-				}
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-			ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
-			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					LatLng sydney;
-					Marker marker = null;
-					if (position == 0) {
-						marker = myGPS.marker;
-					} else {
-						try{
-							marker = groupMarker.get(position - 1);
-						}catch (IndexOutOfBoundsException e){}
-					}
-					if(marker != null){
-						sydney = marker.getPosition();
-						mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-					}
-				}
-			});
-
-			list.setAdapter(adapter);
+			setGroup(user.getGroupID());
 
 			Timer timer = new Timer();
 			timerTask = new MyTimerTask();
@@ -214,6 +186,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				findViewById(R.id.root).setOnClickListener(this);
 			}
 		}
+	}
+
+	public void iconListSet(){
+		ArrayList<Integer> iconlist = new ArrayList<>();
+		ListView list = (ListView) findViewById(R.id.buttonList);
+		iconlist.add(user.getIcon());
+		for (Account account : group) {
+			iconlist.add(account.getIcon());
+		}
+		ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
+		list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				LatLng sydney;
+				Marker marker = null;
+				if (position == 0) {
+					marker = myGPS.marker;
+				} else {
+					try{
+						marker = groupMarker.get(position - 1);
+					}catch (IndexOutOfBoundsException e){}
+				}
+				if(marker != null){
+					sydney = marker.getPosition();
+					mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+				}
+			}
+		});
+		list.setAdapter(adapter);
 	}
 
 	@Override
@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	}
 
 	//ユーザー情報の登録
-	public static void setUser() {
+	public void setUser() {
 		try {
 			String url = "https://kochi-app-dev-walking.herokuapp.com/info";
 			String req = "id=" + sp.getString("userID", "-1");
@@ -290,36 +290,39 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	}
 
 	//グループの取得
-	public static void setGroup(int groupID) throws JSONException {
+	public void setGroup(int groupID) {
 		group.clear();
-		if(groupID < 0){
-			return;
-		}
-		String url;
-		String req;
-		url = "https://kochi-app-dev-walking.herokuapp.com/group";
-		req = "gp=" + groupID;
-		HttpPost httpPost = new HttpPost();
-		httpPost.execute(url, req);
-		mDone = new CountDownLatch(1);
-		try {
-			mDone.await();
-		} catch (InterruptedException e) {
-		}
-		JSONArray jsonArray = httpPost.jsonArray;
-		for (int i = 0; i < jsonArray.length(); i++) {
-			JSONObject jsonObject = jsonArray.getJSONObject(i);
-			int id = jsonObject.getInt("id");
-			if (id != user.getID()) {
-				String name = jsonObject.getString("name");
-				boolean type = false;
-				if (jsonObject.getInt("type") == 0) {
-					type = true;
+		if(groupID > -1) {
+			try {
+				String url;
+				String req;
+				url = "https://kochi-app-dev-walking.herokuapp.com/group";
+				req = "gp=" + groupID;
+				HttpPost httpPost = new HttpPost();
+				httpPost.execute(url, req);
+				mDone = new CountDownLatch(1);
+				try {
+					mDone.await();
+				} catch (InterruptedException e) {
 				}
-				int icon = jsonObject.getInt("icon");
-				group.add(new Account(id, name, type, icon));
+				JSONArray jsonArray = httpPost.jsonArray;
+				for (int i = 0; i < jsonArray.length(); i++) {
+					JSONObject jsonObject = jsonArray.getJSONObject(i);
+					int id = jsonObject.getInt("id");
+					if (id != user.getID()) {
+						String name = jsonObject.getString("name");
+						boolean type = false;
+						if (jsonObject.getInt("type") == 0) {
+							type = true;
+						}
+						int icon = jsonObject.getInt("icon");
+						group.add(new Account(id, name, type, icon));
+					}
+				}
+			} catch (JSONException e) {
 			}
 		}
+		iconListSet();
 	}
 
 	@Override
