@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.concurrent.CountDownLatch;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, SensorEventListener, View.OnClickListener {
+public class MainActivity extends Activity implements OnMapReadyCallback, SensorEventListener, View.OnClickListener {
 
 	public static SharedPreferences sp;
 	public static CountDownLatch mDone;
