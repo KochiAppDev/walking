@@ -122,8 +122,10 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 			return;
 		}
 		Location lastLocation = fusedLocationProviderApi.getLastLocation(mGoogleApiClient);
-		double[] location = {lastLocation.getLatitude(),lastLocation.getLongitude()};
-		mainActivity.root.add(location);
+		if(lastLocation != null){
+			double[] location = {lastLocation.getLatitude(),lastLocation.getLongitude()};
+			mainActivity.root.add(location);
+		}
 	}
 
 	//位置情報の設定
@@ -144,7 +146,7 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 			e.printStackTrace();
 		}
 
-		if(mainActivity.rFlag){
+		if(mainActivity.rFlag > 0){
 			double[] location = {latitude,longitude};
 			mainActivity.root.add(location);
 		}

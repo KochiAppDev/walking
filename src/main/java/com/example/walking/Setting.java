@@ -41,27 +41,15 @@ public class Setting implements View.OnClickListener {
 			case R.id.InputMode_button:
 				break;
 			case R.id.root_button:
-				if(context.rFlag){
-					context.rFlag = false;
-					double[][] rootArray = new double[context.root.size()][2];
-					for(int i=0; i<rootArray.length; i++){
-						rootArray[i] = context.root.get(i);
-					}
-					String url = "https://kochi-app-dev-walking.herokuapp.com/route";
-					String req = "id=" + account.getID() + "&rt=" + Arrays.deepToString(rootArray);
-					HttpPost httpPost = new HttpPost();
-					httpPost.execute(url,req);
-					MainActivity.mDone = new CountDownLatch(1);
-					try {
-						MainActivity.mDone.await();
-					} catch (InterruptedException e) {}
-					JSONObject json = httpPost.jsonObject;
+				context.setContentView(R.layout.root_select);
+				context.findViewById(R.id.button).setOnClickListener(this);
+				context.findViewById(R.id.button1).setOnClickListener(this);
+				/*if(context.rFlag){
+
 				}else {
-					context.rFlag = true;
-					context.root.clear();
-					context.myGPS.rootSet();
+
 				}
-				context.onResume();
+				context.onResume();*/
 				break;
 			case R.id.name_button:
 				MainActivity.nameSet.MysetContentView(account);
@@ -76,6 +64,18 @@ public class Setting implements View.OnClickListener {
 					MainActivity.mDone.await();
 				} catch (InterruptedException e) {}
 				JSONObject json = httpPost.jsonObject;
+				context.onResume();
+				break;
+			case R.id.button:
+				context.root.clear();
+				context.myGPS.rootSet();
+				context.rFlag = 1;
+				context.onResume();
+				break;
+			case  R.id.button1:
+				context.root.clear();
+				context.myGPS.rootSet();
+				context.rFlag = 2;
 				context.onResume();
 				break;
 			default:

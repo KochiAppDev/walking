@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">あるこうよ</string>
-
     <string name="type_text">あなたは見守る側の人ですか？\n\nそれとも見守られる側の人ですか？\n\n選択してください。</string>
     <string name="explanation">このアプリは家族での\n\nコミュニケーションを深めるための\n\nツールとしてご利用ください。</string>
     <string name="aicon_set">あなたのアイコンを一つ選んでください。</string>

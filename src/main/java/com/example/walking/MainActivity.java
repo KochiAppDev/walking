@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -39,6 +40,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.concurrent.CountDownLatch;
 
@@ -53,6 +55,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	private Setting setting;
 	public static NameSet nameSet;
 	public MyGPS myGPS;
+	private AutomaticRoot ar;
 
 	private MapFragment mapFragment;
 
@@ -64,7 +67,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	private int last_y = 0;
 	private int last_z = 0;
 
-	public boolean rFlag = false;
+	public byte rFlag = 0;
 	public ArrayList<double[]> root = new ArrayList<>();
 
 	private BluetoothAdapter mBluetoothAdapter;
@@ -175,8 +178,12 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 			myGPS.setting();
 			myGPS.startGPS();
 
-			if(!user.isType()){
-				findViewById(R.id.root).setOnClickListener(this);
+			if(!user.isType() && rFlag < 2) {
+				Button button = (Button) findViewById(R.id.root);
+				if (rFlag == 1){
+					button.setText("停止");
+				}
+				button.setOnClickListener(this);
 			}
 		}
 	}
@@ -346,24 +353,40 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	public void onMapReady(GoogleMap googleMap) {
 		mMap = googleMap;
 
-		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-			@Override
-			public boolean onMarkerClick(Marker marker) {
-				if(user.isType()){
-					int id = (int) marker.getTag();
-					if(id == 0){
-						setting.MysetContentView(user);
-					}else{
-						setting.MysetContentView(group.get(id - 1));
-					}
-					myGPS.stopGPS();
-					myGPS.marker = null;
-					getFragmentManager().beginTransaction().remove(mapFragment).commit();
+		if(rFlag > 1){
+			mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+				@Override
+				public void onMapLongClick(LatLng latLng) {
+					String ori = root.get(0)[0] + "," + root.get(0)[1];
+					String dest = latLng.latitude + "," + latLng.longitude;
+					String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + ori + "&destination=" + dest + "&key=" + getString(R.string.google_maps_key);
+					AutomaticRoot ar = new AutomaticRoot();
+					ar.execute(url);
+					rFlag = 0;
 				}
+			});
+		}
 
-				return true;
-			}
-		});
+		if(rFlag < 1) {
+			mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+				@Override
+				public boolean onMarkerClick(Marker marker) {
+					if (user.isType()) {
+						int id = (int) marker.getTag();
+						if (id == 0) {
+							setting.MysetContentView(user);
+						} else {
+							setting.MysetContentView(group.get(id - 1));
+						}
+						myGPS.stopGPS();
+						myGPS.marker = null;
+						getFragmentManager().beginTransaction().remove(mapFragment).commit();
+					}
+
+					return true;
+				}
+			});
+		}
 	}
 
 	@Override
@@ -394,13 +417,31 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 
 	@Override
 	public void onClick(View v) {
-		double[][] rt = user.getRt();
-		if(rt != null){
-			markers = new Marker[rt.length];
-			for(int i=0; i<rt.length; i++){
-				LatLng sydney = new LatLng(rt[i][0],rt[i][1]);
-				markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+		if(rFlag < 1) {
+			double[][] rt = user.getRt();
+			if (rt != null) {
+				markers = new Marker[rt.length];
+				for (int i = 0; i < rt.length; i++) {
+					LatLng sydney = new LatLng(rt[i][0], rt[i][1]);
+					markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+				}
 			}
+		}else{
+			rFlag = 0;
+			double[][] rootArray = new double[root.size()][2];
+			for(int i=0; i<rootArray.length; i++){
+				rootArray[i] = root.get(i);
+			}
+			String url = "https://kochi-app-dev-walking.herokuapp.com/route";
+			String req = "id=" + user.getID() + "&rt=" + Arrays.deepToString(rootArray);
+			HttpPost httpPost = new HttpPost();
+			httpPost.execute(url,req);
+			MainActivity.mDone = new CountDownLatch(1);
+			try {
+				MainActivity.mDone.await();
+			} catch (InterruptedException e) {}
+			JSONObject json = httpPost.jsonObject;
+			onResume();
 		}
 	}
 }
