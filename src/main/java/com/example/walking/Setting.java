@@ -24,11 +24,6 @@ public class Setting implements View.OnClickListener {
 		this.context.setContentView(R.layout.setting);
 		this.context.findViewById(R.id.InputMode_button).setOnClickListener(this);
 		rootbutton = (Button) this.context.findViewById(R.id.root_button);
-		if(context.rFlag){
-			rootbutton.setText("ルートを設定中");
-		}else{
-			rootbutton.setText("ルートを設定する");
-		}
 		if(!this.account.isType()){
 			this.context.findViewById(R.id.notice_button).setOnClickListener(this);
 			rootbutton.setOnClickListener(this);

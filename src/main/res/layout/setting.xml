@@ -57,7 +57,7 @@
         android:layout_alignEnd="@+id/name_button"/>
 
     <Button
-        android:text="ルート"
+        android:text="ルートを設定する"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/root_button"
@@ -66,16 +66,6 @@
         android:layout_below="@+id/root_text"
         android:layout_alignStart="@+id/InputMode_button"
         android:layout_alignEnd="@+id/InputMode_button"/>
-
-    <TextView
-        android:text="@string/setting_notice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="23dp"
-        android:id="@+id/notice_text"
-        android:textSize="18sp"
-        android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/InputMode_text"/>
 
     <TextView
         android:text="@string/setting_root"
@@ -106,5 +96,15 @@
         android:textSize="18sp"
         android:layout_below="@+id/name_button"
         android:layout_alignStart="@+id/textView"/>
+
+    <TextView
+        android:text="@string/setting_notice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:id="@+id/notice_text"
+        android:textSize="18sp"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/InputMode_text"/>
 
 </RelativeLayout>

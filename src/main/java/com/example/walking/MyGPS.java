@@ -193,6 +193,8 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 
 	@Override
 	public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-		fusedLocationProviderApi.removeLocationUpdates(mGoogleApiClient, this);
+		if(mGoogleApiClient.isConnected()) {
+			fusedLocationProviderApi.removeLocationUpdates(mGoogleApiClient, this);
+		}
 	}
 }

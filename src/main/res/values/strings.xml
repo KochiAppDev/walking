@@ -1,7 +1,5 @@
 <resources>
     <string name="app_name">あるこうよ</string>
-    <string name="title_activity_map">Map</string>
-    <string name="title_activity_notice">NoticeActivity</string>
 
     <string name="type_text">あなたは見守る側の人ですか？\n\nそれとも見守られる側の人ですか？\n\n選択してください。</string>
     <string name="explanation">このアプリは家族での\n\nコミュニケーションを深めるための\n\nツールとしてご利用ください。</string>
@@ -20,4 +18,5 @@
     <string name="setting_root">ルートの設定ができます。</string>
     <string name="setting_name">名前の変更ができます。</string>
     <string name="setting_remove">仲間から離れることができます。</string>
+    <string name="title_activity_settings">Settings</string>
 </resources>
