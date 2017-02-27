@@ -44,12 +44,6 @@ public class Setting implements View.OnClickListener {
 				context.setContentView(R.layout.root_select);
 				context.findViewById(R.id.button).setOnClickListener(this);
 				context.findViewById(R.id.button1).setOnClickListener(this);
-				/*if(context.rFlag){
-
-				}else {
-
-				}
-				context.onResume();*/
 				break;
 			case R.id.name_button:
 				MainActivity.nameSet.MysetContentView(account);
@@ -70,12 +64,14 @@ public class Setting implements View.OnClickListener {
 				context.root.clear();
 				context.myGPS.rootSet();
 				context.rFlag = 1;
+				context.set_rootID = account.getID();
 				context.onResume();
 				break;
 			case  R.id.button1:
 				context.root.clear();
 				context.myGPS.rootSet();
 				context.rFlag = 2;
+				context.set_rootID = account.getID();
 				context.onResume();
 				break;
 			default:

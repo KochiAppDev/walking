@@ -55,7 +55,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	private Setting setting;
 	public static NameSet nameSet;
 	public MyGPS myGPS;
-	private AutomaticRoot ar;
 
 	private MapFragment mapFragment;
 
@@ -69,6 +68,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 
 	public byte rFlag = 0;
 	public ArrayList<double[]> root = new ArrayList<>();
+	public int set_rootID = -1;
 
 	private BluetoothAdapter mBluetoothAdapter;
 	private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -178,7 +178,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 			myGPS.setting();
 			myGPS.startGPS();
 
-			if(!user.isType() && rFlag < 2) {
+			if(rFlag < 2) {
 				Button button = (Button) findViewById(R.id.root);
 				if (rFlag == 1){
 					button.setText("停止");
@@ -353,40 +353,48 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	public void onMapReady(GoogleMap googleMap) {
 		mMap = googleMap;
 
-		if(rFlag > 1){
-			mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-				@Override
-				public void onMapLongClick(LatLng latLng) {
+		mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+			@Override
+			public void onMapLongClick(LatLng latLng) {
+				if(rFlag > 1) {
 					String ori = root.get(0)[0] + "," + root.get(0)[1];
 					String dest = latLng.latitude + "," + latLng.longitude;
-					String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + ori + "&destination=" + dest + "&key=" + getString(R.string.google_maps_key);
+					String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + ori + "&destination=" + dest + "&mode=walking&key=" + getString(R.string.google_maps_key);
 					AutomaticRoot ar = new AutomaticRoot();
 					ar.execute(url);
+					MainActivity.mDone = new CountDownLatch(1);
+					try {
+						MainActivity.mDone.await();
+					} catch (InterruptedException e) {}
+					url = "https://kochi-app-dev-walking.herokuapp.com/route";
+					String req = "id=" + set_rootID + "&rt=" + Arrays.deepToString(ar.rootArray);
+					HttpPost httpPost = new HttpPost();
+					httpPost.execute(url,req);
 					rFlag = 0;
+					set_rootID = -1;
 				}
-			});
-		}
+			}
+		});
 
-		if(rFlag < 1) {
-			mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-				@Override
-				public boolean onMarkerClick(Marker marker) {
+		mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+			@Override
+			public boolean onMarkerClick(Marker marker) {
+				if(rFlag < 1) {
 					if (user.isType()) {
 						int id = (int) marker.getTag();
 						if (id == 0) {
 							setting.MysetContentView(user);
 						} else {
-							setting.MysetContentView(group.get(id - 1));
+						setting.MysetContentView(group.get(id - 1));
 						}
 						myGPS.stopGPS();
 						myGPS.marker = null;
 						getFragmentManager().beginTransaction().remove(mapFragment).commit();
 					}
-
-					return true;
 				}
-			});
-		}
+			return true;
+			}
+		});
 	}
 
 	@Override
@@ -418,22 +426,24 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	@Override
 	public void onClick(View v) {
 		if(rFlag < 1) {
-			double[][] rt = user.getRt();
-			if (rt != null) {
-				markers = new Marker[rt.length];
-				for (int i = 0; i < rt.length; i++) {
-					LatLng sydney = new LatLng(rt[i][0], rt[i][1]);
-					markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+			if(!user.isType()) {
+				double[][] rt = user.getRt();
+				if (rt != null) {
+					markers = new Marker[rt.length];
+					for (int i = 0; i < rt.length; i++) {
+						LatLng sydney = new LatLng(rt[i][0], rt[i][1]);
+						markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+					}
 				}
 			}
 		}else{
 			rFlag = 0;
 			double[][] rootArray = new double[root.size()][2];
-			for(int i=0; i<rootArray.length; i++){
+			for(int i=0; i<root.size(); i++){
 				rootArray[i] = root.get(i);
 			}
 			String url = "https://kochi-app-dev-walking.herokuapp.com/route";
-			String req = "id=" + user.getID() + "&rt=" + Arrays.deepToString(rootArray);
+			String req = "id=" + set_rootID + "&rt=" + Arrays.deepToString(rootArray);
 			HttpPost httpPost = new HttpPost();
 			httpPost.execute(url,req);
 			MainActivity.mDone = new CountDownLatch(1);
@@ -441,6 +451,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 				MainActivity.mDone.await();
 			} catch (InterruptedException e) {}
 			JSONObject json = httpPost.jsonObject;
+			set_rootID = -1;
 			onResume();
 		}
 	}
