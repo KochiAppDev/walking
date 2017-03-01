@@ -53,11 +53,6 @@ public class Setting implements View.OnClickListener {
 				String req = "id=" + account.getID();
 				HttpPost httpPost = new HttpPost();
 				httpPost.execute(url,req);
-				MainActivity.mDone = new CountDownLatch(1);
-				try {
-					MainActivity.mDone.await();
-				} catch (InterruptedException e) {}
-				JSONObject json = httpPost.jsonObject;
 				context.onResume();
 				break;
 			case R.id.button:

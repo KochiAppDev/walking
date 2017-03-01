@@ -79,11 +79,6 @@ public class NameSet implements View.OnClickListener {
 			}
 			HttpPost httpPost = new HttpPost();
 			httpPost.execute(url,req);
-			MainActivity.mDone = new CountDownLatch(1);
-			try {
-				MainActivity.mDone.await();
-			} catch (InterruptedException e) {}
-			JSONObject json = httpPost.jsonObject;
 			MainActivity.sp.edit().putBoolean("InitState", false).apply();
 			context.onResume();
 		}

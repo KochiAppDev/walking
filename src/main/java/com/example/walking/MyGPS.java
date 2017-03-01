@@ -135,24 +135,10 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 		String req = "id=" + MainActivity.user.getID() + "&lat=" + latitude + "&lon=" + longitude;
 		HttpPost httpPost = new HttpPost();
 		httpPost.execute(url,req);
-		MainActivity.mDone = new CountDownLatch(1);
-		try {
-			MainActivity.mDone.await();
-		} catch (InterruptedException e) {}
-		JSONObject json = httpPost.jsonObject;
-		int result=0;
-		try {
-			result = json.getInt("result");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
 
 		if(mainActivity.rFlag > 0){
 			double[] location = {latitude,longitude};
 			mainActivity.root.add(location);
-		}
-		if(result == -1){
-			LocationSet();
 		}
 	}
 

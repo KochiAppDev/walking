@@ -446,11 +446,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 			String req = "id=" + set_rootID + "&rt=" + Arrays.deepToString(rootArray);
 			HttpPost httpPost = new HttpPost();
 			httpPost.execute(url,req);
-			MainActivity.mDone = new CountDownLatch(1);
-			try {
-				MainActivity.mDone.await();
-			} catch (InterruptedException e) {}
-			JSONObject json = httpPost.jsonObject;
 			set_rootID = -1;
 			onResume();
 		}
