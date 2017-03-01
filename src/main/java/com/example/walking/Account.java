@@ -9,8 +9,8 @@ public class Account {
 	private int groupID;
 	private int range;
 	private int sph;
-	private long lat;
-	private long lon;
+	private double lat;
+	private double lon;
 	private double[][] rt;
 	private String ts;
 
@@ -77,19 +77,19 @@ public class Account {
 		return sph;
 	}
 
-	public long getLat() {
+	public double getLat() {
 		return lat;
 	}
 
-	public void setLat(long lat) {
+	public void setLat(double lat) {
 		this.lat = lat;
 	}
 
-	public long getLon() {
+	public double getLon() {
 		return lon;
 	}
 
-	public void setLon(long lon) {
+	public void setLon(double lon) {
 		this.lon = lon;
 	}
 

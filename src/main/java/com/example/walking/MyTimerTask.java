@@ -39,12 +39,12 @@ public class MyTimerTask extends java.util.TimerTask {
 					}
 					JSONObject jsonObject = httpPost.jsonObject;
 					if(jsonObject != null){
-						long lat = 0;
-						long lon = 0;
+						double lat = 0;
+						double lon = 0;
 						String ts = "";
 						try {
-							lat = jsonObject.getLong("lat");
-							lon = jsonObject.getLong("lon");
+							lat = jsonObject.getDouble("lat");
+							lon = jsonObject.getDouble("lon");
 							ts = jsonObject.getString("ts");
 						} catch (JSONException e) {
 							e.printStackTrace();

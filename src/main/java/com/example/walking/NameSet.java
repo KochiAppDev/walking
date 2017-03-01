@@ -27,6 +27,7 @@ public class NameSet implements View.OnClickListener {
 
 	public void MysetContentView(){
 		this.context.setContentView(R.layout.activity_sub);
+		account = new Account(Integer.valueOf(MainActivity.sp.getString("userID","-1")),"",true,0);
 		this.context.findViewById(R.id.name_decision).setOnClickListener(this);
 		name = (EditText) this.context.findViewById(R.id.name_editText);
 		icon = (GridView)this.context.findViewById(R.id.icon_List);
@@ -66,7 +67,7 @@ public class NameSet implements View.OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if(name.getText().length() != 0 && icnum != -1){
-			int id = Integer.valueOf(MainActivity.sp.getString("userID","-1"));
+			int id = account.getID();
 			if(id < 0){return;}
 			String url;
 			String req;
@@ -79,6 +80,11 @@ public class NameSet implements View.OnClickListener {
 			}
 			HttpPost httpPost = new HttpPost();
 			httpPost.execute(url,req);
+			MainActivity.mDone = new CountDownLatch(1);
+			try {
+				MainActivity.mDone.await();
+			} catch (InterruptedException e) {
+			}
 			MainActivity.sp.edit().putBoolean("InitState", false).apply();
 			context.onResume();
 		}
