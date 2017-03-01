@@ -178,13 +178,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 			myGPS.setting();
 			myGPS.startGPS();
 
-			if(rFlag < 2) {
-				Button button = (Button) findViewById(R.id.root);
-				if (rFlag == 1){
-					button.setText("停止");
-				}
-				button.setOnClickListener(this);
+			Button button = (Button) findViewById(R.id.root);
+			if (rFlag == 1){
+				button.setText("停止");
 			}
+			button.setOnClickListener(this);
 		}
 	}
 
@@ -436,7 +434,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 					}
 				}
 			}
-		}else{
+		}else if(rFlag == 1){
 			rFlag = 0;
 			double[][] rootArray = new double[root.size()][2];
 			for(int i=0; i<root.size(); i++){
