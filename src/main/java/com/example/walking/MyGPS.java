@@ -99,7 +99,7 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 						.title(MainActivity.user.getUsname())
 						.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[MainActivity.user.getIcon()])));
 				marker.setTag(0);
-				MainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+				MainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,14));
 			}
 		}
 	}
@@ -153,7 +153,7 @@ class MyGPS implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnCo
 					.position(sydney)
 					.icon(BitmapDescriptorFactory.fromResource(MainActivity.color[MainActivity.user.getIcon()])));
 			marker.setTag(0);
-			MainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+			MainActivity.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,14));
 		}else{
 			marker.setPosition(sydney);
 		}
