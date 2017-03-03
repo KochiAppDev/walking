@@ -14,6 +14,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
@@ -67,6 +68,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	private int last_z = 0;
 
 	public byte rFlag = 0;
+	private boolean flag = true;
 	public ArrayList<double[]> root = new ArrayList<>();
 	public int set_rootID = -1;
 
@@ -103,6 +105,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	public static final int[] color = new int[8];
 
 	private String BluetoothAdapterName ;
+
+	private final Handler handler = new Handler();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -170,6 +174,31 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 			}
 
 			setGroup(user.getGroupID());
+			ArrayList<Integer> iconlist = new ArrayList<>();
+			ListView list = (ListView) findViewById(R.id.buttonList);
+			iconlist.add(user.getIcon());
+			for (Account account : group) {
+				iconlist.add(account.getIcon());
+			}
+			ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
+			list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					LatLng sydney;
+					Marker marker = null;
+					if (position == 0) {
+						marker = myGPS.marker;
+					} else {
+						try{
+							marker = groupMarker.get(position - 1);
+						}catch (IndexOutOfBoundsException e){}
+					}
+					if(marker != null){
+						sydney = marker.getPosition();
+						mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+					}
+				}
+			});
+			list.setAdapter(adapter);
 
 			Timer timer = new Timer();
 			timerTask = new MyTimerTask();
@@ -186,34 +215,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 		}
 	}
 
-	public void iconListSet(){
-		ArrayList<Integer> iconlist = new ArrayList<>();
-		ListView list = (ListView) findViewById(R.id.buttonList);
-		iconlist.add(user.getIcon());
-		for (Account account : group) {
-			iconlist.add(account.getIcon());
-		}
-		ImageArrayAdapter adapter = new ImageArrayAdapter(this, R.layout.listchild, iconlist);
-		list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				LatLng sydney;
-				Marker marker = null;
-				if (position == 0) {
-					marker = myGPS.marker;
-				} else {
-					try{
-						marker = groupMarker.get(position - 1);
-					}catch (IndexOutOfBoundsException e){}
-				}
-				if(marker != null){
-					sydney = marker.getPosition();
-					mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-				}
-			}
-		});
-		list.setAdapter(adapter);
-	}
-
 	@Override
 	protected void onActivityResult(int requestCode, int ResultCode, Intent date) {
 		switch (requestCode) {
@@ -227,7 +228,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 		}
 	}
 
-	private void startDetect() {
+	public void startDetect() {
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(BluetoothDevice.ACTION_FOUND);
 		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
@@ -320,7 +321,23 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 			} catch (JSONException e) {
 			}
 		}
-		iconListSet();
+	}
+
+	public void settingList() {
+		handler.post(new Runnable() {
+			public void run() {
+				setGroup(user.getGroupID());
+				ListView list = (ListView) findViewById(R.id.buttonList);
+				ImageArrayAdapter adapter = (ImageArrayAdapter) list.getAdapter();
+				ArrayList<Integer> iconList = new ArrayList<>();
+				iconList.add(user.getIcon());
+				for (Account account : group) {
+					iconList.add(account.getIcon());
+				}
+				adapter.clear();
+				adapter.addAll(iconList);
+			}
+		});
 	}
 
 	@Override
@@ -425,13 +442,22 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	public void onClick(View v) {
 		if(rFlag < 1) {
 			if(!user.isType()) {
-				double[][] rt = user.getRt();
-				if (rt != null) {
-					markers = new Marker[rt.length];
-					for (int i = 0; i < rt.length; i++) {
-						LatLng sydney = new LatLng(rt[i][0], rt[i][1]);
-						markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+				Button button = (Button) findViewById(R.id.root);
+				if(flag){
+					double[][] rt = user.getRt();
+					if (rt != null) {
+						markers = new Marker[rt.length];
+						for (int i = 0; i < rt.length; i++) {
+							LatLng sydney = new LatLng(rt[i][0], rt[i][1]);
+							markers[i] = mMap.addMarker(new MarkerOptions().position(sydney));
+						}
 					}
+					button.setText("停止");
+				}else {
+					for (Marker marker :markers) {
+						marker.remove();
+					}
+					button.setText("ルート");
 				}
 			}
 		}else if(rFlag == 1){

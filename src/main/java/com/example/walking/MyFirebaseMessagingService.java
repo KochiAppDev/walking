@@ -29,7 +29,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 			case "group":
 				int groupID = Integer.valueOf(remoteMessage.getData().get("group"));
 				MainActivity.user.setGroupID(groupID);
-				MainActivity.mainActivity.setGroup(groupID);
+				MainActivity.mainActivity.settingList();
 				break;
 			case "message":
 				break;
