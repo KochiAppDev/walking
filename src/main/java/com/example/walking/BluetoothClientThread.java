@@ -83,6 +83,7 @@ public class BluetoothClientThread extends Thread {
 					})
 					.setNegativeButton("キャンセル",null)
 					.show();
+				myClientAdapter.startDiscovery();
 			}
 		});
 	}
