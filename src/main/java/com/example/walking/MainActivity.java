@@ -84,12 +84,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 					if (device.getName().startsWith("walking")) {
 						BluetoothClientThread bct = new BluetoothClientThread(MainActivity.this, device, mBluetoothAdapter);
 						bct.start();
-						unregisterReceiver(mReceiver);
 					}
 				}catch (NullPointerException e){}
 			}
 			if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-				unregisterReceiver(mReceiver);
 				startDetect();
 			}
 		}
@@ -162,6 +160,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 					Intent btOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 					startActivityForResult(btOn, 0);
 				} else {
+					IntentFilter filter = new IntentFilter();
+					filter.addAction(BluetoothDevice.ACTION_FOUND);
+					filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+					registerReceiver(mReceiver, filter);
 					startDetect();
 					bst = new BluetoothServerThread(this, mBluetoothAdapter);
 					bst.start();
@@ -229,10 +231,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 	}
 
 	public void startDetect() {
-		IntentFilter filter = new IntentFilter();
-		filter.addAction(BluetoothDevice.ACTION_FOUND);
-		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-		registerReceiver(mReceiver, filter);
 		//接続可能なデバイスを検出
 		if(mBluetoothAdapter.isDiscovering()){
 			//検索中の場合は検出をキャンセルする
@@ -305,6 +303,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 				} catch (InterruptedException e) {
 				}
 				JSONArray jsonArray = httpPost.jsonArray;
+				if(jsonArray == null){return;}
 				for (int i = 0; i < jsonArray.length(); i++) {
 					JSONObject jsonObject = jsonArray.getJSONObject(i);
 					int id = jsonObject.getInt("id");
@@ -425,7 +424,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 			float speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000;
 			if (speed > SHAKE_THRESHOLD) {
 				Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-				intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 20);
+				intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 10);
 				startActivity(intent);
 			}
 			last_x = x;
