@@ -71,7 +71,6 @@ public class BluetoothClientThread extends Thread {
 								outputStream.flush();
 								outputStream.close();
 								clientSocket.close();
-								MainActivity.mainActivity.startDetect();
 							} catch (IOException e) {
 								try {
 									clientSocket.close();
