@@ -425,6 +425,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 			float speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000;
 			if (speed > SHAKE_THRESHOLD) {
 				Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+				intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 20);
 				startActivity(intent);
 			}
 			last_x = x;
@@ -453,11 +454,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Sensor
 						}
 					}
 					button.setText("停止");
+					flag = false;
 				}else {
 					for (Marker marker :markers) {
 						marker.remove();
 					}
 					button.setText("ルート");
+					flag = true;
 				}
 			}
 		}else if(rFlag == 1){
